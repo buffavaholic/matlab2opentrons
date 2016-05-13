@@ -1,0 +1,107 @@
+varArray = {'contName'  ,  'microplate_96_deep_well' ;
+    'type'      ,  'microplate';
+    'nRows'     ,   12;
+    'nCols'     ,   8;
+    'a1_x'      ,  13.5 ;
+    'a1_y'      ,   16.5;
+    'spacing'   ,   9;
+    'diameter'  ,   7.5;
+    'height'    ,   33.5;
+    'well_depth',   33.5;
+    'volume'    ,   2000;
+    'min_vol'   ,   '';
+    'max_vol'   ,   '';
+    'custom'    ,    ''};
+
+varArray = {'contName'  , 'microplate_348'  ;
+    'type'      , 'microplate'  ;
+    'nRows'     , 24  ;
+    'nCols'     , 16  ;
+    'a1_x'      , 12.13  ;
+    'a1_y'      , 8.99  ;
+    'spacing'   , 4.5  ;
+    'diameter'  , 3.1  ;
+    'height'    , 10  ;
+    'well_depth', 9.5  ;
+    'volume'    , 50  ;
+    'min_vol'   , 1  ;
+    'max_vol'   , 30  ;
+    'custom'    , '{none}'   };
+
+
+varArray = {'contName'  , 'tiprack_10'  ;
+    'type'      ,  'tiprack' ;
+    'nRows'     ,  12 ;
+    'nCols'     ,  8 ;
+    'a1_x'      ,   0;
+    'a1_y'      ,   0;
+    'spacing'   ,   8.85;
+    'diameter'  ,   3.5;
+    'height'    ,   0;
+    'well_depth',   NaN;
+    'volume'    ,   10;
+    'min_vol'   ,   .5;
+    'max_vol'   ,   10;
+    'custom'    ,  '{none}'  };
+
+varArray = {'contName'  ,  'tiprack_200' ;
+    'type'      ,  'tiprack' ;
+    'nRows'     ,  12 ;
+    'nCols'     ,  8 ;
+    'a1_x'      ,  0 ;
+    'a1_y'      ,  0 ;
+    'spacing'   ,  8.85 ;
+    'diameter'  ,  3.5 ;
+    'height'    ,  0 ;
+    'well_depth',  NaN ;
+    'volume'    ,  200 ;
+    'min_vol'   ,  20 ;
+    'max_vol'   ,  200 ;
+    'custom'    ,  '{none}'  };
+
+varArray = {'contName'  , 'tiprack_1000'  ;
+    'type'      ,  'tiprack' ;
+    'nRows'     ,  12 ;
+    'nCols'     ,  8 ;
+    'a1_x'      ,  0 ;
+    'a1_y'      ,  0 ;
+    'spacing'   ,  9 ;
+    'diameter'  ,  6.4 ;
+    'height'    ,  0 ;
+    'well_depth',  NaN ;
+    'volume'    ,  1000 ;
+    'min_vol'   ,  100 ;
+    'max_vol'   ,  1000 ;
+    'custom'    ,  '{none}'  };
+
+varArray = {'contName'  ,   ;
+    'type'      ,   ;
+    'nRows'     ,   ;
+    'nCols'     ,   ;
+    'a1_x'      ,   ;
+    'a1_y'      ,   ;
+    'spacing'   ,   ;
+    'diameter'  ,   ;
+    'height'    ,   ;
+    'well_depth',   ;
+    'volume'    ,   ;
+    'min_vol'   ,   ;
+    'max_vol'   ,   ;
+    'custom'    ,  '{none}'  };
+
+varArray = {'contName'  , 'trash'  ;
+    'type'      , 'trash'  ;
+    'nRows'     , 1  ;
+    'nCols'     , 1  ;
+    'a1_x'      , 50  ;
+    'a1_y'      , 50  ;
+    'spacing'   , 0  ;
+    'diameter'  , NaN  ;
+    'height'    , NaN ;
+    'well_depth', NaN  ;
+    'volume'    , NaN  ;
+    'min_vol'   , NaN  ;
+    'max_vol'   , NaN  ;
+    'custom'    ,  '{none}'  };
+
+                    
