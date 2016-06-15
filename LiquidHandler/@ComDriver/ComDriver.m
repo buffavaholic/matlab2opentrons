@@ -90,7 +90,14 @@ classdef ComDriver < handle% < LiquidHandler.Driver
         end
         
         function recoverFromLock(Com)
-            Com.sendMsg('driver','driver','command','smoothie','halt','')
+            Com.sendMsg('driver','driver','command','smoothie','reset_from_halt','"true"')
+            Com.homeAxis('XYZAB')
+%             Com.sendMsg('driver','driver','command','smoothie','reset','"true"')
+%             Com.sendMsg('driver','driver','command','smoothie','limit_switches','"true"')
+%             Com.sendMsg('driver','driver','command','smoothie','unlock','"true"')
+%             to = Com.driverID;
+%                 fprintf(Com.TCPobj,['{"topic":"driver", "to":"',to,'","from":"',...
+%                 Com.clientID,'","sessionID":"',Com.clientID,'","type":"command","data":{"name":"smoothie","message":"unlock"}}']);
         end
         
         function msgInCallback(Com,obj, event)
@@ -186,6 +193,9 @@ classdef ComDriver < handle% < LiquidHandler.Driver
         
         %% move in all directions given simultaneously
         function moveTo(Com,axisStr,pos)
+            if max(isnan(pos))~=0
+                error('Trying to send NaN coordinates...do not do')
+            else
             numAxis = length(axisStr);
             if numAxis>1
                 paramStr = '{';
@@ -227,6 +237,7 @@ classdef ComDriver < handle% < LiquidHandler.Driver
             end
             
             Com.sendMsg('driver','driver','command','smoothie','move_to',paramStr)
+            end
         end
         
         %% move while going all the way to zero on Z first

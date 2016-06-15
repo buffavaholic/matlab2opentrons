@@ -62,6 +62,7 @@ handles.axisToggleGrp.SelectionChangedFcn = @(gr,ev) axisToggleGrp_onChange(gr,e
 % Update handles structure
 guidata(hObject, handles);
 
+
 % UIWAIT makes LHgui wait for user response (see UIRESUME)
 % uiwait(handles.figure1);
 

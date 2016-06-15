@@ -104,4 +104,67 @@ varArray = {'contName'  , 'trash'  ;
     'max_vol'   , NaN  ;
     'custom'    ,  '{none}'  };
 
+
+
+customStr = ['{"A1":{"x": 0,"y":0},',...
+              '"B1":{"x": 32,"y":0},',...
+              '"C1":{"x": 64,"y":0},',...
+              '"A2":{"x": 0,"y":24},',...
+              '"B2":{"x": 32,"y":24},',...
+              '"C2":{"x": 64,"y":24},',...
+              '"A3":{"x": 10,"y":50,"diameter":26,"volume":50000},',...
+              '"B3":{"x": 55,"y":50,"diameter":26,"volume":50000},',...
+              '"A4":{"x": 10,"y":86,"diameter":26,"volume":50000},',...
+              '"B4":{"x": 55,"y":86,"diameter":26,"volume":50000}}'];
+          
+customJSON = loadjson(customStr)
+
+varArray = {'contName'  , '15_50mL_tuberack'  ;
+    'type'      ,  'tuberack' ;
+    'nRows'     ,  3 ;
+    'nCols'     ,  4 ;
+    'a1_x'      ,  0 ;
+    'a1_y'      ,  0 ;
+    'spacing'   ,  0 ;
+    'diameter'  ,  16 ;
+    'height'    ,  77 ;
+    'well_depth',  76 ;
+    'volume'    ,  15000 ;
+    'min_vol'   ,  NaN ;
+    'max_vol'   ,  15000;
+    'custom'    ,  customJSON  };
+
+  A2: 
+     x: 0
+     y: 24
+  B2: 
+     x: 32
+     y: 24
+  C2: 
+     x: 64
+     y: 24
+  A3: 
+     x: 10
+     y: 50
+     depth: 76
+     diameter: 26
+     volume: 50000
+  B3: 
+     x: 55
+     y: 50
+     depth: 76
+     diameter: 26
+     volume: 50000
+  A4: 
+     x: 5
+     y: 86
+     diameter: 26
+     volume: 50000
+  B4: 
+     x: 55
+     y: 86
+     depth: 76
+     diameter: 26
+     volume: 50000
+
                     

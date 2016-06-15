@@ -2,7 +2,12 @@
 
 %% Initialize Liquid Handler
 
-LH = LiquidHandler(savedLH);
+% LH = LiquidHandler(savedLH);
+load('prevConfig.mat')
+LH = LiquidHandler(prevHead,prevDeck);
+
+load('prevConfig.mat')
+LH = LiquidHandler(prevHead);
 
 %% Home Axes
 LH.Com.homeAxis('ZAB')
@@ -35,3 +40,5 @@ LH.testPickupVol('Left',200)
 
 LH.testPickupVol('Left',100)
 LH.testPickupVol('Left',50)
+
+LH.getNextTip('Left')

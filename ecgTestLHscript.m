@@ -4,15 +4,17 @@
 
 LH = LiquidHandler;
 
-%% Add pipettes to head
-LH.Head.setPipette('Left','p200')
-LH.Head.setPipette('Right','p1000')
-
 %% Add containers to deck
 
 LH.Deck.addContainer('mp1','B2','microplate_96_deep_well');
 LH.Deck.addContainer('p200tips','A2','tiprack_200');
 LH.Deck.addContainer('trash','C3','trash');
+
+%% Add pipettes to head
+LH.Head.setPipette('Left','p200')
+LH.Head.setPipette('Right','p1000')
+
+LH.Head.setTipCont('Left','p200tips')
 
 %% Open up LH GUI
 LHgui(LH)

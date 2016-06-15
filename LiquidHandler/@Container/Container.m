@@ -37,12 +37,15 @@ classdef Container < handle
         % Keep track of tips if tiprack
         tipInd = NaN;
         tipLoc
+        tipAxis = '';
         
         % deck slot
         slot
         
         % record name used in deck to refer to this container
         refName
+        
+        
         
     end
     
@@ -55,21 +58,13 @@ classdef Container < handle
             inds(1) = str2num(posString(2:end));
         end
         
-        function str = inds2str(Cont,ind)
-            alph = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-            rowNum = num2str(floor(ind/Cont.props.nCols)+1,'%u');
-            colInd = mod(ind,Cont.props.nCols);
-            if colInd == 0
-                colInd = Cont.props.nCols;
-            end
-            str = [alph(colInd),rowNum];
-        end
+        
     end
     
     methods
         
         %% Constructor
-        function Cont = Container(nameIn,slot,refName)
+        function Cont = Container(nameIn,slot,refName,newVarArray)
             
             % Get File Path
             getFileName = mfilename('fullpath');
@@ -81,7 +76,9 @@ classdef Container < handle
             
             paramRow = Cont.contParamTable.contName == nameIn;
             if sum(paramRow)==0
-                error('No container with that name')
+                fprintf('No container with that name... adding new container')
+                Cont.addContType(newVarArray)
+                Cont.props = table2struct(Cont.contParamTable(end,:));
             elseif sum(paramRow)==1
                 Cont.props = table2struct(Cont.contParamTable(paramRow,:));
             else
@@ -89,13 +86,38 @@ classdef Container < handle
             end
             
             if strcmp(char(Cont.props.type),'tiprack')
-                Cont.setTipLoc(1);
+                Cont.tipInd = 1;
+                Cont.setTipLoc(Cont.tipInd);
             end
             
             Cont.slot = slot;
             Cont.refName = refName;
             
             
+            
+            
+        end
+        
+        % tool to generate string of position
+        function str = inds2str(Cont,ind)
+            alph = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            if strcmp(Cont.tipAxis,'Right')
+                rowNum = num2str(floor((ind-0.5)/Cont.props.nCols)+1,'%u');
+                colInd = mod(ind,Cont.props.nCols);
+                if colInd == 0
+                    colInd = Cont.props.nCols;
+                end
+                str = [alph(colInd),rowNum];
+            elseif strcmp(Cont.tipAxis,'Left')
+                rowNum = num2str(floor((ind-.5)/Cont.props.nCols)+1,'%u');
+                colInd = Cont.props.nCols-mod(ind,Cont.props.nCols)+1;
+                if colInd == Cont.props.nCols+1
+                    colInd = 1;
+                end
+                str = [alph(colInd),rowNum];
+            else
+                str='';
+            end
         end
         
         function addContType(Cont,varArray)
@@ -157,9 +179,26 @@ classdef Container < handle
                         calib = Cont.calibRight;
                 end
                 if isCalib
-                    coord = calib;                    
+                    coord = calib;
+                    if ~isstruct(Cont.props.custom)
+                        % standard spaced container
                     coord(1) = coord(1) + (xWellInd-1)*Cont.props.spacing; %x direction is also positive relative to the head
                     coord(2) = coord(2) - (yWellInd-1)*Cont.props.spacing;
+                    else
+                        % custom defined well coordinates
+                        try
+                            xWellLoc = Cont.props.custom.(wellStr).x;
+                            yWellLoc = Cont.props.custom.(wellStr).y;
+                            coord(1) = coord(1) + xWellLoc; %x direction is also positive relative to the head
+                            coord(2) = coord(2) - yWellLoc;
+                        catch
+                            error('Custom well not defined correctly')
+                        end
+                        
+                            
+                            
+                        
+                    end
                 else
                     fprintf('Container has not been calibrated! \n')
                     coord = [NaN,NaN,NaN];
@@ -172,13 +211,13 @@ classdef Container < handle
         % set tip well
         function setTipLoc(Cont,tipInd)
            Cont.tipInd = tipInd;
-           Cont.tipLoc = Cont.inds2str(Cont,tipInd);
+           Cont.tipLoc = Cont.inds2str(tipInd);
         end
         
         function useTip(Cont)
             if ~isnan(Cont.tipInd)
                Cont.tipInd = Cont.tipInd+1;
-               Cont.tipLoc = Cont.inds2str(Cont,tipInd);
+               Cont.tipLoc = Cont.inds2str(Cont.tipInd);
             else
                 error('Not a tip type')
             end
