@@ -16,7 +16,7 @@ classdef ComDriver < handle% < LiquidHandler.Driver
         driverID
         
         % Message handling
-        allMsg = cell(1,5);
+        allMsg
         
         % Head position data
         x=NaN;
@@ -27,6 +27,17 @@ classdef ComDriver < handle% < LiquidHandler.Driver
         
         % Deck properties
 %         Deck 
+        
+        currStat = 0;
+        statOld = 0;
+        moveStat = 0;
+        
+        statIncr = 0;
+        statDecr = 0;
+        
+        % Queue of instructions
+        queue
+        queueRecord
         
     end
     
@@ -49,6 +60,17 @@ classdef ComDriver < handle% < LiquidHandler.Driver
             % Get File Path
             getFileName = mfilename('fullpath');
             Com.classPath = fileparts(getFileName);
+            
+            % Initialize the message recording table
+            startUpCell = {datestr(datetime),'self','self','start-up','n/a','n/a','n/a'};
+            Com.allMsg = cell2table(startUpCell);
+            Com.allMsg.Properties.VariableNames = {'callbackTime','fromID','toID','msgType','msgDataName','fieldName','fieldVal'};
+            
+            % Initialize queue
+            Com.queue = {'topic','to','type','name','message','param'};
+            Com.queueRecord = {'datetime','topic','to','type','name','message','param'};
+%             Com.queue = table(cell(0,6));
+%             Com.queue.Properties.VariableNames = {'topic','to','type','name','message','param'};
             
             % Initalize TCP connection
             Com.TCPobj=tcpip('10.10.1.2',7887,'NetworkRole','client','Terminator',{'LF/CR','LF/CR'});
@@ -78,6 +100,7 @@ classdef ComDriver < handle% < LiquidHandler.Driver
         
         %% Send message 
         function sendMsg(Com,topic,to,type,name,message,param)
+            
             if strcmp(to,'driver')
                 to = Com.driverID;
                 fprintf(Com.TCPobj,['{"topic":"',topic,'", "to":"',to,'","from":"',...
@@ -88,6 +111,8 @@ classdef ComDriver < handle% < LiquidHandler.Driver
 %                 Com.clientID,'","sessionID":"',Com.clientID,'","type":"',type,...
 %                 '","name":"',name,'","message":"',message,'","param":',param,'}']);
         end
+        
+        
         
         function recoverFromLock(Com)
             Com.sendMsg('driver','driver','command','smoothie','reset_from_halt','"true"')
@@ -103,27 +128,41 @@ classdef ComDriver < handle% < LiquidHandler.Driver
         function msgInCallback(Com,obj, event)
 
             callbackTime = datestr(datenum(event.Data.AbsTime));
-            fprintf(['A ',event.Type,' event occurred for ',obj.Name, ' at ',callbackTime,'.\n']);
+%             fprintf(['A ',event.Type,' event occurred for ',obj.Name, ' at ',callbackTime,'.\n']);
             
             data = fscanf(obj);
             dataCellStr = cellstr(data);
-            fprintf('raw msg: %s \n',dataCellStr{1})
+%             fprintf('raw msg: %s \n',dataCellStr{1})
             Com.recordMSG(dataCellStr,callbackTime)
         end
         
         function recordMSG(Com, strIn,callbackTime)
             
-            numEntries = length(Com.allMsg(:,1));
-            if numEntries == 1 && isempty(Com.allMsg{1})
-                numEntries = 0;
-            end
+%             numEntries = length(Com.allMsg(:,1));
+            numEntries = height(Com.allMsg);
+%             if numEntries == 1 && isempty(Com.allMsg{1})
+%                 numEntries = 0;
+%             end
             try                
                 jsonData = loadjson(strIn{1});
                 fromName = jsonData.from;
                 toName = jsonData.to;
                 typeName = jsonData.type;
                 msgData = jsonData.data;
-                Com.allMsg(numEntries+1,1:5) = {callbackTime,fromName,toName,typeName,msgData};
+                msgDataName = jsonData.data.name;
+                msgDataMsg = jsonData.data.message;
+                fnames = fieldnames(msgDataMsg);
+                for k =1:length(fnames)
+                    fieldNameStr = fnames{k};
+                    fieldVal = msgDataMsg.(fieldNameStr);
+                    if strcmp(fieldNameStr,'stat')
+                        Com.recordStat(fieldVal)
+%                         Com.allMsg(numEntries+1,1:7) = {callbackTime,fromName,toName,typeName,msgDataName,fieldNameStr,fieldVal};
+                    elseif ~strcmp(typeName,'queue')
+%                         Com.allMsg(numEntries+1,:) = {callbackTime,fromName,toName,typeName,msgDataName,fieldNameStr,fieldVal};
+                        Com.allMsg(numEntries+1,:) = {{callbackTime},{fromName},{toName},{typeName},{msgDataName},{fieldNameStr},{fieldVal}};
+                    end                    
+                end
                 if Com.connStat ~= 1 
                     if strcmp(typeName,'handshake')
                         if max(strcmp(msgData.message.result,{'success','already_connected'}))
@@ -138,11 +177,46 @@ classdef ComDriver < handle% < LiquidHandler.Driver
                 end
                 
             catch
-                Com.allMsg{numEntries+1,1} = callbackTime;
+                Com.allMsg(numEntries+1,1) = {callbackTime};
             end
         end
         
+        function recordStat(Com,statIn)
+            Com.currStat = statIn;
+            Com.moveStat = statIn;
+            statChange = statIn-Com.statOld;
+            if statChange>0
+                Com.statIncr = Com.statIncr + statChange;
+                fprintf('Stat Incr: %2.0i  --  Stat Net: %2.0f \n',Com.statIncr,Com.currStat)
+            elseif statChange<0
+                Com.statDecr = Com.statDecr - statChange;
+                
+                fprintf('Stat Decr: %2.0i  --  Stat Net: %2.0f \n',Com.statDecr,Com.currStat)
+                if Com.statDecr == Com.statIncr && Com.currStat == 0
+                    Com.stepQueue()
+                end
+            end
+            Com.statOld = Com.moveStat;
+        end
         
+        function stepQueue(Com)
+            nQueue = length(Com.queue(:,1));
+            if nQueue >= 2
+                [topic,to,type,name,message,param] = Com.queue{2,:};
+                Com.sendMsg(topic,to,type,name,message,param)
+                Com.queue(2,:) = [];
+            end
+        end
+        
+        function addToQueue(Com,topic,to,type,name,message,param)
+            nQueue = length(Com.queue(:,1));
+            Com.queue(nQueue+1,:) = {topic,to,type,name,message,param};
+            nRecord = length(Com.queueRecord(:,1));
+            Com.queueRecord(nRecord+1,:) = {datestr(datetime),topic,to,type,name,message,param};
+            if nQueue==1 && Com.currStat ==0
+                Com.stepQueue();
+            end
+        end
         
         function homeAxis(Com,axisStr)
             numAxis = length(axisStr);
@@ -170,7 +244,8 @@ classdef ComDriver < handle% < LiquidHandler.Driver
                 end
             end
             
-            Com.sendMsg('driver','driver','command','smoothie','home',paramStr)
+            Com.addToQueue('driver','driver','command','smoothie','home',paramStr)
+%             Com.sendMsg('driver','driver','command','smoothie','home',paramStr)
         end
         
         function jogDir(Com,axisStr,dist)
@@ -188,7 +263,8 @@ classdef ComDriver < handle% < LiquidHandler.Driver
                     Com.b = Com.b + dist;
             end
             paramStr =  ['{"',axisStr,'":',num2str(dist),'}'];
-            Com.sendMsg('driver','driver','command','smoothie','move',paramStr)
+            Com.addToQueue('driver','driver','command','smoothie','move',paramStr)
+%             Com.sendMsg('driver','driver','command','smoothie','move',paramStr)
         end
         
         %% move in all directions given simultaneously
@@ -236,7 +312,8 @@ classdef ComDriver < handle% < LiquidHandler.Driver
                 paramStr =  ['{"',axisStr,'":',num2str(pos),'}'];
             end
             
-            Com.sendMsg('driver','driver','command','smoothie','move_to',paramStr)
+            Com.addToQueue('driver','driver','command','smoothie','move_to',paramStr)
+%             Com.sendMsg('driver','driver','command','smoothie','move_to',paramStr)
             end
         end
         
