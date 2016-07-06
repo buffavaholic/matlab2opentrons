@@ -35,6 +35,8 @@ classdef ComDriver < handle% < LiquidHandler.Driver
         statIncr = 0;
         statDecr = 0;
         
+        initGate = 0;
+        
         % Queue of instructions
         queue
         queueRecord
@@ -85,6 +87,12 @@ classdef ComDriver < handle% < LiquidHandler.Driver
             while Com.connStat ~= 1
                 fprintf('waiting to connect\n')
                 
+            end
+            
+            % Turn on feedback after connected 
+            if Com.initGate==0 && Com.connStat == 1
+                Com.sendMsg('driver','driver','command','smoothie','feedback_on','true')
+                Com.initGate = 1;
             end
             
             % Initalize Deck
@@ -218,6 +226,9 @@ classdef ComDriver < handle% < LiquidHandler.Driver
             end
         end
         
+        function clearQueue(Com)
+            Com.queue = {'topic','to','type','name','message','param'};
+        end
         function homeAxis(Com,axisStr)
             numAxis = length(axisStr);
             

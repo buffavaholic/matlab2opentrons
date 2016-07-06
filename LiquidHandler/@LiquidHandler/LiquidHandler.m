@@ -88,6 +88,8 @@ classdef LiquidHandler < handle
                 LH.Com.moveTo(LH.Head.(Axis).axis,fs-.25*(fs-top))
             end
             
+            LH.Com.moveTo(LH.Head.(Axis).axis,blowoutPos)
+            
         end
         
         %% function used to test volume calibration
@@ -227,7 +229,7 @@ classdef LiquidHandler < handle
             LH.Com.moveToZzero('XYZ',toWellCoord);
             
             % Eject liquid
-            LH.ejectLiq(Axis,2)
+            LH.ejectLiq(Axis,1)
             
             % Dump the tip
             LH.trashTip(Axis)

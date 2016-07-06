@@ -134,6 +134,21 @@ varArray = {'contName'  , '15_50mL_tuberack'  ;
     'max_vol'   ,  15000;
     'custom'    ,  customJSON  };
 
+varArray = {'contName'  , '15_50mL_tuberack'  ;
+    'type'      ,  'tuberack' ;
+    'nRows'     ,  3 ;
+    'nCols'     ,  4 ;
+    'a1_x'      ,  0 ;
+    'a1_y'      ,  0 ;
+    'spacing'   ,  0 ;
+    'diameter'  ,  16 ;
+    'height'    ,  77 ;
+    'well_depth',  76 ;
+    'volume'    ,  15000 ;
+    'min_vol'   ,  NaN ;
+    'max_vol'   ,  15000;
+    'custom'    ,  customStr  };
+
   A2: 
      x: 0
      y: 24

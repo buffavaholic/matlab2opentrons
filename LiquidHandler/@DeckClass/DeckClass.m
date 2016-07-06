@@ -86,7 +86,7 @@ classdef DeckClass < dynamicprops
         function conts = getContainerList(DK)
             contLoc = which('Container.m');
             contPath = fileparts(contLoc);
-            contParamTable = readtable([contPath,'\contParam.csv']);
+            contParamTable = readtable([contPath,'\contParam.txt'],'Delimiter','|');
             conts = contParamTable.contName;
         end
         

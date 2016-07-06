@@ -389,7 +389,10 @@ function clearSlotButton_Callback(hObject, eventdata, handles)
     set(selSlotHandle,'String',[slotStr,' Slot'])
     set(selSlotHandle,'BackgroundColor',[.94 .94 .94])
     
-
+    handles.buttonToSlot.Name(handles.buttonToSlot.Tag == selSlotTag)=[];
+    handles.buttonToSlot.Type(handles.buttonToSlot.Tag == selSlotTag)=[];
+    
+guidata(hObject, handles);
 
 % --- Executes on button press in saveCalibButton.
 function saveCalibButton_Callback(hObject, eventdata, handles)

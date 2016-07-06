@@ -1,0 +1,9 @@
+contName|type|nRows|nCols|a1_x|a1_y|spacing|diameter|height|well_depth|volume|min_vol|max_vol|custom
+microplate_24|microplate|6|4|13.5|17.5|19.3|15.62|16.2|16.2|3400|380|570|{none}
+microplate_96_deep_well|microplate|12|8|13.5|16.5|9|7.5|33.5|33.5|2000|NaN|NaN|{none}
+microplate_348|microplate|24|16|12.13|8.99|4.5|3.1|10|9.5|50|1|30|{none}
+tiprack_10|tiprack|12|8|0|0|8.85|3.5|0|NaN|10|0.5|10|{none}
+tiprack_200|tiprack|12|8|0|0|9|3.5|0|NaN|200|20|200|{none}
+tiprack_1000|tiprack|12|8|0|0|9|6.4|0|NaN|1000|100|1000|{none}
+trash|trash|1|1|50|50|0|NaN|NaN|NaN|NaN|NaN|NaN|{none}
+15_50mL_tuberack|tuberack|4|3|0|0|0|16|77|76|15000|NaN|15000|{"A1":{"x": 0,"y":0},"B1":{"x": 32,"y":0},"C1":{"x": 64,"y":0},"A2":{"x": 0,"y":24},"B2":{"x": 32,"y":24},"C2":{"x": 64,"y":24},"A3":{"x": 10,"y":50,"diameter":26,"volume":50000},"B3":{"x": 55,"y":50,"diameter":26,"volume":50000},"A4":{"x": 10,"y":86,"diameter":26,"volume":50000},"B4":{"x": 55,"y":86,"diameter":26,"volume":50000}}

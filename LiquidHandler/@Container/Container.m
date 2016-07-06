@@ -70,13 +70,13 @@ classdef Container < handle
             getFileName = mfilename('fullpath');
             Cont.classPath = fileparts(getFileName);
             
-            Cont.contParamTable = readtable([Cont.classPath,'\contParam.csv']);
+            Cont.contParamTable = readtable([Cont.classPath,'\contParam.txt'],'Delimiter','|');
             Cont.contParamTable.contName = categorical(Cont.contParamTable.contName);
             Cont.contParamTable.type = categorical(Cont.contParamTable.type);
             
             paramRow = Cont.contParamTable.contName == nameIn;
             if sum(paramRow)==0
-                fprintf('No container with that name... adding new container')
+                fprintf('No container with that name... adding new container \n')
                 Cont.addContType(newVarArray)
                 Cont.props = table2struct(Cont.contParamTable(end,:));
             elseif sum(paramRow)==1
@@ -145,7 +145,7 @@ classdef Container < handle
                 fprintf('Container name already exists: choose another name \n')
              else
                  Cont.contParamTable = [Cont.contParamTable;newRow];
-                 writetable(Cont.contParamTable,[Cont.classPath,'\contParam.csv'])
+                 writetable(Cont.contParamTable,[Cont.classPath,'\contParam.txt'],'Delimiter','|')
              end
         end
         
@@ -180,15 +180,19 @@ classdef Container < handle
                 end
                 if isCalib
                     coord = calib;
-                    if ~isstruct(Cont.props.custom)
+                    if strcmp(Cont.props.custom,'{none}')==1
+%                     if ~isstruct(Cont.props.custom)
                         % standard spaced container
                     coord(1) = coord(1) + (xWellInd-1)*Cont.props.spacing; %x direction is also positive relative to the head
                     coord(2) = coord(2) - (yWellInd-1)*Cont.props.spacing;
                     else
                         % custom defined well coordinates
                         try
-                            xWellLoc = Cont.props.custom.(wellStr).x;
-                            yWellLoc = Cont.props.custom.(wellStr).y;
+                            custDef = loadjson(Cont.props.custom);                            
+                            xWellLoc = custDef.(wellStr).x;
+                            yWellLoc = custDef.(wellStr).y;
+%                             xWellLoc = Cont.props.custom.(wellStr).x;
+%                             yWellLoc = Cont.props.custom.(wellStr).y;
                             coord(1) = coord(1) + xWellLoc; %x direction is also positive relative to the head
                             coord(2) = coord(2) - yWellLoc;
                         catch
