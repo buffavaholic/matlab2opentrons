@@ -31,30 +31,31 @@ classdef LiquidHandler < handle
             getFileName = mfilename('fullpath');
             LH.classPath = fileparts(getFileName);
             % Initalize Connection
-            LH.Com = ComDriver;
+%             LH.Com = ComDriver;
             
+
             switch nargin
                 case 0
-                    % setting up config from raw
-                    % Initalize Pipettes
-                    LH.Head = Pipettes;
-                    
-                    % Initalize Deck
-                    LH.Deck = DeckClass;
-                case 1
-                    % setting up from previous calibration
-                    % Get Pipette Properties
-                    LH.Head = Pipettes(SavedConfigHead);
-                    
-                    % Get Deck Properties
-                    LH.Deck = DeckClass ;
-                 case 2
-                    % setting up from previous calibration
-                    % Get Pipette Properties
-                    LH.Head = Pipettes(SavedConfigHead,SavedConfigDeck);
-                    
-                    % Get Deck Properties
-                    LH.Deck = SavedConfigDeck;
+%                     % setting up config from raw
+%                     % Initalize Pipettes
+%                     LH.Head = Pipettes;
+%                     
+%                     % Initalize Deck
+%                     LH.Deck = DeckClass;
+%                 case 1
+%                     % setting up from previous calibration
+%                     % Get Pipette Properties
+%                     LH.Head = Pipettes(SavedConfigHead);
+%                     
+%                     % Get Deck Properties
+%                     LH.Deck = DeckClass ;
+%                  case 2
+%                     % setting up from previous calibration
+%                     % Get Pipette Properties
+%                     LH.Head = Pipettes(SavedConfigHead,SavedConfigDeck);
+%                     
+%                     % Get Deck Properties
+%                     LH.Deck = SavedConfigDeck;
             end
             
         end
