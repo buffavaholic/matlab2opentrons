@@ -22,7 +22,7 @@ function varargout = OTgui(varargin)
 
 % Edit the above text to modify the response to help OTgui
 
-% Last Modified by GUIDE v2.5 14-Dec-2016 18:13:38
+% Last Modified by GUIDE v2.5 15-Dec-2016 16:49:19
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -927,3 +927,17 @@ else
 end
 
 set(handles.comPortsList,'String',handles.InitComPorts);
+
+
+% --- Executes on button press in pipetteBlowSaveBtn.
+function pipetteBlowSaveBtn_Callback(hObject, eventdata, handles)
+% hObject    handle to pipetteBlowSaveBtn (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --- Executes on button press in pipetteBlowGotoBtn.
+function pipetteBlowGotoBtn_Callback(hObject, eventdata, handles)
+% hObject    handle to pipetteBlowGotoBtn (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
