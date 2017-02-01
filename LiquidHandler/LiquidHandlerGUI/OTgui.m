@@ -75,6 +75,10 @@ end
 
 set(handles.comPortsList,'String',handles.InitComPorts);
 
+% Pre-allocate pipette axis struct fields for dynamic reference
+handles.A.name = 'A';
+handles.B.name = 'B';
+
 
 handles.axisToggleGrp.SelectionChangedFcn = @(gr,ev) axisToggleGrp_onChange(gr,ev,handles);
 
@@ -709,13 +713,34 @@ function pipetteDroptipSaveBtn_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
+handles = updatePipetteList(handles);
+
 if get(handles.rightAxisToggleBtn,'Value')
-    pos = handles.LH.Com.a;
-    handles.LH.Head.calibrate('Right','droptip',pos)
+    axisID = 'A';
 else
-    pos = handles.LH.Com.b;
-    handles.LH.Head.calibrate('Left','droptip',pos)
+    axisID = 'B';
 end
+
+% Calibrate axis drop_tip position (if pipette is set)
+if isfield(handles.(axisID),'pointer')
+    instr = handles.(axisID).pointer;
+    instr.calibrate('drop_tip');
+    % update positions
+    handles.(axisID).pos = struct(instr.positions);
+else
+    % if a pipette isnt set then cant calibrate it.
+    error('Cannot calibrate plunger position for selected axis as a pipette has not been added to that position. Either select correct axis or add pipette to slot');
+end
+
+guidata(hObject, handles);
+
+% if get(handles.rightAxisToggleBtn,'Value')
+%     pos = handles.LH.Com.a;
+%     handles.LH.Head.calibrate('Right','droptip',pos)
+% else
+%     pos = handles.LH.Com.b;
+%     handles.LH.Head.calibrate('Left','droptip',pos)
+% end
 
 
 % --- Executes on button press in pipetteDroptipGotoBtn.
@@ -724,27 +749,70 @@ function pipetteDroptipGotoBtn_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
+handles = updatePipetteList(handles);
+
 if get(handles.rightAxisToggleBtn,'Value')
-    pos = handles.LH.Head.Right.droptip;
-    handles.LH.Com.moveTo('A',pos)
+    axisID = 'A';
+    robotAxis = 'a';
 else
-    pos = handles.LH.Head.Left.droptip;
-    handles.LH.Com.moveTo('B',pos)
+    axisID = 'B';
+    robotAxis = 'b';
 end
+
+% plunger position string (for easier replication)
+plungerPosStr = 'drop_tip';
+
+% Check if pipette is set
+if isfield(handles.(axisID),'pointer')    
+    % Check if the calibrated position is numeric 
+    if isnumeric(handles.(axisID).pos.(plungerPosStr))
+        % Passed checks move plunger position
+        posLoc = handles.(axisID).pos.(plungerPosStr);
+        handles.robot.move_plunger(pyargs(robotAxis,posLoc));    
+    else
+        error('Plunger position for this location and pipette need to be calibrated first.');
+    end
+else
+    % if a pipette isnt set then cant move it.
+    error('Cannot move plunger position for selected axis as a pipette has not been added to that position. Either select correct axis or add pipette to slot and then calibrate');
+end
+
+guidata(hObject, handles);
 
 % --- Executes on button press in pipetteFSsaveBtn.
 function pipetteFSsaveBtn_Callback(hObject, eventdata, handles)
 % hObject    handle to pipetteFSsaveBtn (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+handles = updatePipetteList(handles);
 
 if get(handles.rightAxisToggleBtn,'Value')
-    pos = handles.LH.Com.a;
-    handles.LH.Head.calibrate('Right','firstStop',pos)
+    axisID = 'A';
 else
-    pos = handles.LH.Com.b;
-    handles.LH.Head.calibrate('Left','firstStop',pos)
+    axisID = 'B';
 end
+
+% Calibrate axis bottom position (if pipette is set)
+if isfield(handles.(axisID),'pointer')
+    instr = handles.(axisID).pointer;
+    instr.calibrate('bottom');
+    % update positions
+    handles.(axisID).pos = struct(instr.positions);
+else
+    % if a pipette isnt set then cant calibrate it.
+    error('Cannot calibrate plunger position for selected axis as a pipette has not been added to that position. Either select correct axis or add pipette to slot');
+end
+
+guidata(hObject, handles);
+
+
+% if get(handles.rightAxisToggleBtn,'Value')
+%     pos = handles.LH.Com.a;
+%     handles.LH.Head.calibrate('Right','firstStop',pos)
+% else
+%     pos = handles.LH.Com.b;
+%     handles.LH.Head.calibrate('Left','firstStop',pos)
+% end
 
 
 % --- Executes on button press in pipetteFSgotoBtn.
@@ -753,13 +821,35 @@ function pipetteFSgotoBtn_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
+handles = updatePipetteList(handles);
+
 if get(handles.rightAxisToggleBtn,'Value')
-    pos = handles.LH.Head.Right.firstStop;
-    handles.LH.Com.moveTo('A',pos)
+    axisID = 'A';
+    robotAxis = 'a';
 else
-    pos = handles.LH.Head.Left.firstStop;
-    handles.LH.Com.moveTo('B',pos)
+    axisID = 'B';
+    robotAxis = 'b';
 end
+
+% plunger position string (for easier replication)
+plungerPosStr = 'bottom';
+
+% Check if pipette is set
+if isfield(handles.(axisID),'pointer')    
+    % Check if the calibrated position is numeric 
+    if isnumeric(handles.(axisID).pos.(plungerPosStr))
+        % Passed checks move plunger position
+        posLoc = handles.(axisID).pos.(plungerPosStr);
+        handles.robot.move_plunger(pyargs(robotAxis,posLoc));    
+    else
+        error('Plunger position for this location and pipette need to be calibrated first.');
+    end
+else
+    % if a pipette isnt set then cant move it.
+    error('Cannot move plunger position for selected axis as a pipette has not been added to that position. Either select correct axis or add pipette to slot and then calibrate');
+end
+
+guidata(hObject, handles);
 
 % --- Executes on button press in pipetteTopSaveBtn.
 function pipetteTopSaveBtn_Callback(hObject, eventdata, handles)
@@ -767,13 +857,34 @@ function pipetteTopSaveBtn_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
+handles = updatePipetteList(handles);
+
 if get(handles.rightAxisToggleBtn,'Value')
-    pos = handles.LH.Com.a;
-    handles.LH.Head.calibrate('Right','top',pos)
+    axisID = 'A';
 else
-    pos = handles.LH.Com.b;
-    handles.LH.Head.calibrate('Left','top',pos)
+    axisID = 'B';
 end
+
+% Calibrate axis top position (if pipette is set)
+if isfield(handles.(axisID),'pointer')
+    instr = handles.(axisID).pointer;
+    instr.calibrate('top');
+    % update positions
+    handles.(axisID).pos = struct(instr.positions);
+else
+    % if a pipette isnt set then cant calibrate it.
+    error('Cannot calibrate plunger position for selected axis as a pipette has not been added to that position. Either select correct axis or add pipette to slot');
+end
+
+guidata(hObject, handles);
+
+% if get(handles.rightAxisToggleBtn,'Value')
+%     pos = handles.LH.Com.a;
+%     handles.LH.Head.calibrate('Right','top',pos)
+% else
+%     pos = handles.LH.Com.b;
+%     handles.LH.Head.calibrate('Left','top',pos)
+% end
 
 % --- Executes on button press in pipetteTopGotoBtn.
 function pipetteTopGotoBtn_Callback(hObject, eventdata, handles)
@@ -781,13 +892,46 @@ function pipetteTopGotoBtn_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
+
+handles = updatePipetteList(handles);
+
 if get(handles.rightAxisToggleBtn,'Value')
-    pos = handles.LH.Head.Right.top;
-    handles.LH.Com.moveTo('A',pos)
+    axisID = 'A';
+    robotAxis = 'a';
 else
-    pos = handles.LH.Head.Left.top;
-    handles.LH.Com.moveTo('B',pos)
+    axisID = 'B';
+    robotAxis = 'b';
 end
+
+% plunger position string (for easier replication)
+plungerPosStr = 'top';
+
+% Check if pipette is set
+if isfield(handles.(axisID),'pointer')    
+    % Check if the calibrated position is numeric 
+    if isnumeric(handles.(axisID).pos.(plungerPosStr))
+        % Passed checks move plunger position
+        posLoc = handles.(axisID).pos.(plungerPosStr);
+        handles.robot.move_plunger(pyargs(robotAxis,posLoc));    
+    else
+        error('Plunger position for this location and pipette need to be calibrated first.');
+    end
+else
+    % if a pipette isnt set then cant move it.
+    error('Cannot move plunger position for selected axis as a pipette has not been added to that position. Either select correct axis or add pipette to slot and then calibrate');
+end
+
+guidata(hObject, handles);
+
+
+
+% if get(handles.rightAxisToggleBtn,'Value')
+%     pos = handles.LH.Head.Right.top;
+%     handles.LH.Com.moveTo('A',pos)
+% else
+%     pos = handles.LH.Head.Left.top;
+%     handles.LH.Com.moveTo('B',pos)
+% end
 
 
 % --- Executes on button press in pickupTipBtn.
@@ -935,9 +1079,102 @@ function pipetteBlowSaveBtn_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
+handles = updatePipetteList(handles);
+
+if get(handles.rightAxisToggleBtn,'Value')
+    axisID = 'A';
+else
+    axisID = 'B';
+end
+
+% Calibrate axis blow_out position (if pipette is set)
+if isfield(handles.(axisID),'pointer')
+    instr = handles.(axisID).pointer;
+    instr.calibrate('blow_out');
+    % update positions
+    handles.(axisID).pos = struct(instr.positions);
+else
+    % if a pipette isnt set then cant calibrate it.
+    error('Cannot calibrate plunger position for selected axis as a pipette has not been added to that position. Either select correct axis or add pipette to slot');
+end
+
+guidata(hObject, handles);
 
 % --- Executes on button press in pipetteBlowGotoBtn.
 function pipetteBlowGotoBtn_Callback(hObject, eventdata, handles)
 % hObject    handle to pipetteBlowGotoBtn (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
+handles = updatePipetteList(handles);
+
+if get(handles.rightAxisToggleBtn,'Value')
+    axisID = 'A';
+    robotAxis = 'a';
+else
+    axisID = 'B';
+    robotAxis = 'b';
+end
+
+% plunger position string (for easier replication)
+plungerPosStr = 'blow_out';
+
+% Check if pipette is set
+if isfield(handles.(axisID),'pointer')    
+    % Check if the calibrated position is numeric 
+    if isnumeric(handles.(axisID).pos.(plungerPosStr))
+        % Passed checks move plunger position
+        posLoc = handles.(axisID).pos.(plungerPosStr);
+        handles.robot.move_plunger(pyargs(robotAxis,posLoc));    
+    else
+        error('Plunger position for this location and pipette need to be calibrated first.');
+    end
+else
+    % if a pipette isnt set then cant move it.
+    error('Cannot move plunger position for selected axis as a pipette has not been added to that position. Either select correct axis or add pipette to slot and then calibrate');
+end
+
+guidata(hObject, handles);
+
+% Check for and update pointers to connected pipettes
+function handles = updatePipetteList(handles)
+
+instruments = handles.robot.get_instruments();
+setAflag = 0;
+setBflag = 0;
+for k = 1:length(instruments)
+    axisID = char(instruments{k}{1});
+    pipettePointer = instruments{k}{2};
+    try
+        handles.(axisID).pointer = pipettePointer;
+        handles.(axisID).pos = struct(handles.(axisID).pointer.positions);
+        if axisID == 'A'
+            %         handles.PipetteA = pipettePointer;
+            setAflag = 1;
+        elseif axisID == 'B'
+            %         handles.PipetteB = pipettePointer;
+            setBflag = 1;
+        end
+    catch
+        error('parsing instruments issue')
+    end
+    
+end
+
+if setAflag == 0;
+    if isfield(handles.A,'pointer')
+        handles.A = rmfield(handles.A,'pointer');
+    end
+    if isfield(handles.A,'pos')
+        handles.A = rmfield(handles.A,'pos');
+    end
+end
+if setBflag == 0;
+    if isfield(handles.B,'pointer')
+        handles.B = rmfield(handles.B,'pointer');
+    end
+    if isfield(handles.A,'pos')
+        handles.B = rmfield(handles.B,'pos');
+    end
+end
+
