@@ -58,47 +58,9 @@ classdef OpenTrons < dynamicprops
             % logs, etc are all saved in there for cleanliness
             cd([OT.libPath,'\Util\OTfiles'])
             
-            % Clean up the stupid automatic running of the opentrons
-%             logFile = char(py.opentrons.util.environment.get_path('LOG_DIR'));
-%             contFile = char(py.opentrons.util.environment.get_path('CONTAINERS_DIR'));
-%             calibFile = char(py.opentrons.util.environment.get_path('CALIBRATIONS_DIR'));
-%             osIn = py.importlib.import_module('os');
-
-            % change python directory to try to make the calibration files
-            % open consistently. 
-%             osIn.chdir([OT.libPath,'\Util\OTfiles']);
-%             py.opentrons.util.environment.refresh();
-%             
-%             newLogFile = char(py.opentrons.util.environment.get_path('LOG_DIR'));
-%             newContFile = char(py.opentrons.util.environment.get_path('CONTAINERS_DIR'));
-%             newCalibFile = char(py.opentrons.util.environment.get_path('CALIBRATIONS_DIR')); 
-            
-%             if ~strcmp(logFile,newLogFile)
-%                 delete(logFile)
-%             end
-%             if ~strcmp(contFile,newContFile)
-%                 delete(contFile)
-%             end
-%             if ~strcmp(calibFile,newCalibFile)
-%                 delete(calibFile)
-%             end
-            
-%             py.os.chdir([OT.libPath,'\Util\OTfiles'])
-%             py.opentrons.util.environment.get_path('LOG_FILE')
-%             py.opentrons.util.environment.refresh();
-%             py.opentrons.util.environment.get_path('LOG_FILE')
-%             bob = 1;
             % Initialize the python robot class
             OT.robot = genOT;
-            
-%             py.opentrons.util.environment.get_path('LOG_FILE')
-            
-            % Clear the robot
-%             OT.robot.reset();
-            
-%             % Pause for 3 seconds to allow the python files to be generated
-%             pause(3);
-            
+               
             cd([OT.libPath,'\Util\pyScripts'])
             
             % Load the helper python file
