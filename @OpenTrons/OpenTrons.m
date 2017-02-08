@@ -60,7 +60,9 @@ classdef OpenTrons < dynamicprops
             
             % Initialize the python robot class
             OT.robot = genOT;
-               
+            
+            % Reset robot
+            OT.robot.reset();
             cd([OT.libPath,'\Util\pyScripts'])
             
             % Load the helper python file
@@ -142,6 +144,37 @@ classdef OpenTrons < dynamicprops
                 
         end
         
+        function rel_pos_vect = rel_pos(OT,cont,well,varargin)
+            % Calculates the relative position within a well of a container
+            
+            % Parse optional variables
+            arg.rel_x = 0; % (double between -1 and 1) Relative position of well x position 
+            arg.rel_y = 0; % (double between -1 and 1) Relative position of well y position 
+            arg.rel_z = -1; % (double between -1 and 1) Relative position of well z position (-1= bottom, 1=top of well)
+            arg.rel_r = []; % (double between -1 and 1) Relative position of polar radius from well center
+            arg.rel_theta = []; % (double) Relative position of polar angle from well center in radians
+            arg.rel_h = []; % (double between -1 and 1) Relative position of polar height from well center
+            arg.reference = cont; % (OT Container Class) position relative to what container
+            
+            arg = parseVarargin(varargin,arg);
+            
+            % Get well of container based on how 'well' is passed in
+            if ischar(well)
+                wellPointer = OT.helper.get_well(cont,well);
+            elseif isnumeric(well)
+                wellPointer = OT.helper.get_well(cont,int16(well));
+            else
+                error('Well must be specified as either a string or integer')
+            end
+            
+            % if polar references are specified use the polar reference
+            if (~isempty(arg.rel_r) && ~isempty(arg.rel_theta) && ~isempty(arg.rel_h))
+                rel_pos_vect = wellPointer.from_center(pyargs('r',arg.rel_r,'theta',arg.rel_theta,'h',arg.rel_h,'reference',arg.reference));
+            else
+                rel_pos_vect = wellPointer.from_center(pyargs('x',arg.rel_x,'y',arg.rel_y,'z',arg.rel_z,'reference',arg.reference));
+            end
+        end
+        
         %% Pipette Methods
         
         function pipetteHandle = loadPipette(OT,pipRef,axis,max_vol,varargin)
@@ -161,7 +194,7 @@ classdef OpenTrons < dynamicprops
                     propHandle = OT.addprop(pipRef);
                     OT.axisA = Pipettes(OT,pipRef,'a',max_vol,varargin{:}); % Initialize the pipette and save to axis specific handle
                     OT.(pipRef) = OT.axisA; % Point dynamic prop handle to the axis specific handle
-                    OT.pipHandles(1,2) = propHandle; % Save dynamic prop handle
+                    OT.pipHandles(1,2) = {propHandle}; % Save dynamic prop handle
                     pipetteHandle = OT.(pipRef); % Pass out pointer to the pipette
                 elseif strcmpi(axis,'b')
                     propHandle = OT.addprop(pipRef);
