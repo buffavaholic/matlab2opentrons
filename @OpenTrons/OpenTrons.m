@@ -208,6 +208,30 @@ classdef OpenTrons < dynamicprops
             end
         end
         
+        %% Queuing Methods
+        
+        function sendToExtQueue(OT,extQueue,commandStruct,timePoint,timeType,timeOrder)
+            
+            % Pass information to the external queue
+            extQueue.addToQueue(commandStruct.name,{timePoint,timeType},timeOrder,'OTcommand',commandStruct.comd,'',OT,'runFromExtQueue',0);
+            
+        end
+        
+        function runFromExtQueue(OT,commands)
+            
+            commandCell = commands{:};
+            
+            for k=1:length(commandCell(:,1))
+                runner = commandCell{k,1};
+                vars = commandCell{k,3};
+                
+                runner.(commandCell{k,2})(vars{:});
+            end
+            
+            OT.robot.run()
+            
+        end
+        
         %% Internal Methods
         
         function is_a_GO = checkRefName(OT,refName)

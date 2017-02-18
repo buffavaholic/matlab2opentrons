@@ -58,3 +58,15 @@ p200.aspirate(100,OT.helper.get_well(plate24,'A1'))
 p200.dispense(50,OT.helper.get_well(plate24,'A2'),1.5)
 p200.dispense(50,OT.helper.get_well(plate24,'B1'),0.5)
 p200.drop_tip()
+
+
+%% Sending to queue
+
+testCommands = struct;
+testCommands.name = 'test OT in';
+testCommands.comd(1,:) = {OT.p200,'pick_up_tip',{py.None,'OTqueue'}};
+testCommands.comd(2,:) = {OT.p200,'drop_tip',{py.None,'OTqueue'}};
+
+
+OT.sendToExtQueue(Scp.Sched,testCommands,15,'absolute',2)
+
