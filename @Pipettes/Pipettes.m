@@ -358,8 +358,14 @@ classdef Pipettes < handle
              
         %% Tip Methods
         
-        function pick_up_tip(Pip,Loc,queuing)
+        function pick_up_tip(Pip,Loc,queuing,varargin)
             % Pick up a new tip
+            
+            % Parse optional variables
+            arg.locqueue = OTexQueue;
+            arg.localpos = -1; % Where to add this into the comd list
+            
+            arg = parseVarargin(varargin,arg);
             
             % Allow less than all inputs
             if nargin == 2
@@ -381,14 +387,28 @@ classdef Pipettes < handle
                     Pip.pypette.pick_up_tip(Loc);
                 case 'ExtQueue'
                     % Send to external queue
-                    % Need to do
+                    
+                    if arg.locqueue.checkLocQueue
+                        % Appropriate parameters are set so send to queue
+                        arg.locqueue.queueMeth(Pip,'pick_up_tip',{Loc,'OTqueue'},'Pick up tip at??','localpos',arg.localpos);
+                        
+                    else
+                        % Queue is either not defined or parameters not set
+                        error('Local queue not initalized properly or supplied')
+                    end
             end
             
         end
         
-        function drop_tip(Pip,Loc,queuing)
+        function drop_tip(Pip,Loc,queuing,varargin)
             % Drop current tip in trash or if undefined the current
             % location
+            
+            % Parse optional variables
+            arg.locqueue = OTexQueue;
+            arg.localpos = -1; % Where to add this into the comd list
+            
+            arg = parseVarargin(varargin,arg);
             
             % Allow less than all inputs
             if nargin == 2
@@ -410,13 +430,27 @@ classdef Pipettes < handle
                     Pip.pypette.drop_tip(Loc);
                 case 'ExtQueue'
                     % Send to external queue
-                    % Need to do
+                    
+                    if arg.locqueue.checkLocQueue
+                        % Appropriate parameters are set so send to queue
+                        arg.locqueue.queueMeth(Pip,'drop_tip',{Loc,'OTqueue'},'drop tip at??','localpos',arg.localpos);
+                        
+                    else
+                        % Queue is either not defined or parameters not set
+                        error('Local queue not initalized properly or supplied')
+                    end
             end
             
         end
         
-        function return_tip(Pip,queuing)
+        function return_tip(Pip,queuing,varargin)
             % Return current tip to it's previous tiprack location
+            
+            % Parse optional variables
+            arg.locqueue = OTexQueue;
+            arg.localpos = -1; % Where to add this into the comd list
+            
+            arg = parseVarargin(varargin,arg);
             
             % Allow less than all inputs
             if nargin == 1
@@ -435,16 +469,29 @@ classdef Pipettes < handle
                     Pip.pypette.drop_tip();
                 case 'ExtQueue'
                     % Send to external queue
-                    % Need to do
+                     if arg.locqueue.checkLocQueue
+                        % Appropriate parameters are set so send to queue
+                        arg.locqueue.queueMeth(Pip,'return_tip',{'OTqueue'},'return tip to ??','localpos',arg.localpos);
+                        
+                    else
+                        % Queue is either not defined or parameters not set
+                        error('Local queue not initalized properly or supplied')
+                    end
             end
             
         end
         
         %% General movement methods
         
-        function home(Pip,queuing)
+        function home(Pip,queuing,varargin)
             % Home this pipette's axis either right now or during a
             % protocol
+            
+            % Parse optional variables
+            arg.locqueue = OTexQueue;
+            arg.localpos = -1; % Where to add this into the comd list
+            
+            arg = parseVarargin(varargin,arg);
             
             % Allow the default be to add to queue
             if nargin == 1
@@ -463,15 +510,29 @@ classdef Pipettes < handle
                     Pip.pypette.home();
                 case 'ExtQueue'
                     % Send to external queue
-                    % Need to do
+                    
+                     if arg.locqueue.checkLocQueue
+                        % Appropriate parameters are set so send to queue
+                        arg.locqueue.queueMeth(Pip,'home',{'OTqueue'},'home axis ??','localpos',arg.localpos);
+                        
+                    else
+                        % Queue is either not defined or parameters not set
+                        error('Local queue not initalized properly or supplied')
+                    end
             end
         end
         
-        function move_to(Pip,loc,strategy,queuing)
+        function move_to(Pip,loc,strategy,queuing,varargin)
             % Move robot to given location based on this pipettes
             % calibration
             %     No checking that loc is of the right format because it
             %     can be several different types.
+            
+            % Parse optional variables
+            arg.locqueue = OTexQueue;
+            arg.localpos = -1; % Where to add this into the comd list
+            
+            arg = parseVarargin(varargin,arg);
             
             % Assign default variables if not passed in
             if nargin==3
@@ -501,13 +562,26 @@ classdef Pipettes < handle
                     Pip.pypette.move_to(loc,strategy,1);
                 case 'ExtQueue'
                     % Send to external queue
-                    % Need to do
+                     if arg.locqueue.checkLocQueue
+                        % Appropriate parameters are set so send to queue
+                        arg.locqueue.queueMeth(Pip,'move_to',{loc,strategy,'OTqueue'},'move to ??','localpos',arg.localpos);
+
+                    else
+                        % Queue is either not defined or parameters not set
+                        error('Local queue not initalized properly or supplied')
+                    end
             end
             
         end
         
-        function delay(Pip,time,queuing)
+        function delay(Pip,time,queuing,varargin)
             % Pause movement either during queued run or right now
+            
+            % Parse optional variables
+            arg.locqueue = OTexQueue;
+            arg.localpos = -1; % Where to add this into the comd list
+            
+            arg = parseVarargin(varargin,arg);
             
             % Assign default queue variable if not passed in
             if nargin == 2
@@ -526,7 +600,14 @@ classdef Pipettes < handle
                     Pip.pypette.delay(time,true);
                 case 'ExtQueue'
                     % Send to external queue
-                    % Need to do
+                    if arg.locqueue.checkLocQueue
+                        % Appropriate parameters are set so send to queue
+                        arg.locqueue.queueMeth(Pip,'delay',{time,'OTqueue'},'delay ??','localpos',arg.localpos);
+
+                    else
+                        % Queue is either not defined or parameters not set
+                        error('Local queue not initalized properly or supplied')
+                    end
             end
         end
         

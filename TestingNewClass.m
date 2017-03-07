@@ -65,8 +65,35 @@ p200.drop_tip()
 testCommands = struct;
 testCommands.name = 'test OT in';
 testCommands.comd(1,:) = {OT.p200,'pick_up_tip',{py.None,'OTqueue'}};
+testCommands.comd(2,:) = {OT.p200,'aspirate',{100,OT.helper.get_well(plate24,'A1'),py.None,'OTqueue'}};
+testCommands.comd(3,:) = {OT.p200,'dispense',{50,OT.helper.get_well(plate24,'A2'),py.None,'OTqueue'}};
+
+
+OT.sendToExtQueue(Scp.Sched,testCommands,20,'absolute',2)
+
+testCommands = struct;
+testCommands.name = 'test OT in 2';
+testCommands.comd(1,:) = {OT.p200,'dispense',{50,OT.helper.get_well(plate24,'B1'),py.None,'OTqueue'}};
 testCommands.comd(2,:) = {OT.p200,'drop_tip',{py.None,'OTqueue'}};
 
+OT.sendToExtQueue(Scp.Sched,testCommands,40,'absolute',2)
 
-OT.sendToExtQueue(Scp.Sched,testCommands,15,'absolute',2)
+%% Think about how to best populate queue
+
+QueueList = OTexQueue;
+
+QueueList(1).Name = 'firstThing';
+QueueList(1).TimePoint = 15;
+QueueList(1).MDdescr = 'This is the first thing to run';
+
+p200.pick_up_tip([],'ExtQueue','locqueue',QueueList(1))
+
+QueueList(2).Name = 'secondThing';
+QueueList(2).TimePoint = 60;
+QueueList(2).TimeOrder = 1;
+QueueList(2).MDdescr = 'This is the second thing to run';
+p200.drop_tip(py.None,'ExtQueue','locqueue',QueueList(2))
+
+
+OT.sendToExtQueue(Scp.Sched,QueueList)
 

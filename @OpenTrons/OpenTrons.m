@@ -22,6 +22,9 @@ classdef OpenTrons < dynamicprops
         axisA; % Handle for the pipette on axis A
         axisB; % Handle for the pipette on axis B
         pipHandles = {'a',[];'b',[]}; %List of handles of the dynamic properties used for pipettes
+        
+        %% Local queues
+        QueueList;
     end
     
     methods (Static = true)
@@ -210,16 +213,55 @@ classdef OpenTrons < dynamicprops
         
         %% Queuing Methods
         
-        function sendToExtQueue(OT,extQueue,commandStruct,timePoint,timeType,timeOrder)
+        function prepTransfer(OT,pipette,timePoint,timeType,timeOrder,queueType)
             
-            % Pass information to the external queue
-            extQueue.addToQueue(commandStruct.name,{timePoint,timeType},timeOrder,'OTcommand',commandStruct.comd,'',OT,'runFromExtQueue',0);
+            % set default properties for things that arent added
+            switch nargin
+                case 3
+                    timeType = 'absolute';
+                    timeOrder = -1;
+                    queueType = 'ExtQueue';
+                case 4                    
+                    
+                case 5                    
+                    
+            end
+            % Get the pipette reference name for inside OT
+            pipName = pipette.name;
+            
+            
             
         end
         
-        function runFromExtQueue(OT,commands)
+        
+        
+        function sendToExtQueue(OT,extQueue,queueList)
+            % Pass information to the external queue
             
-            commandCell = commands{:};
+            % number of different queue groups
+            nQueues = length(queueList);
+            
+            for k = 1:nQueues
+                qGroup = queueList(k);
+                
+                % Check that the queue is set
+                if qGroup.checkLocQueue==1
+                    extQueue.addToQueue(qGroup.Name,...
+                        {qGroup.TimePoint,qGroup.TimeType},...
+                        qGroup.TimeOrder,'OTcommand',...
+                        {qGroup},'',OT,'runFromExtQueue',qGroup.MDdescr,0);
+                else
+                    error('one of the queues in the queue list is not properly set');
+                end
+            end
+        end
+        
+        function runFromExtQueue(OT,queueCell)
+            
+            OT.robot.clear_commands();
+            
+            queue = queueCell{:};
+            commandCell =queue.comd;
             
             for k=1:length(commandCell(:,1))
                 runner = commandCell{k,1};
@@ -229,6 +271,7 @@ classdef OpenTrons < dynamicprops
             end
             
             OT.robot.run()
+%             OT.runPar();
             
         end
         
