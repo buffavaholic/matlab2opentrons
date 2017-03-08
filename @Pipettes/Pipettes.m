@@ -502,14 +502,13 @@ classdef Pipettes < handle
             end
         end
         
-        function move_to(Pip,varargin)
+        function move_to(Pip,loc, varargin)
             % Move robot to given location based on this pipettes
             % calibration
             %     No checking that loc is of the right format because it
             %     can be several different types.
             
             % Parse optional variables
-            arg.loc = py.None;
             arg.strategy = 'arc';
             arg.queuing = 'OTqueue';
             arg.locqueue = OTexQueue;
@@ -517,8 +516,12 @@ classdef Pipettes < handle
             
             arg = parseVarargin(varargin,arg);
             
+            if isempty(loc)
+                loc = py.None;
+            end
+            
             if isempty(arg.strategy)
-                strategy = 'arc';
+                arg.strategy = 'arc';
             end
             
             % Confirm strategy is in the correct format
@@ -531,15 +534,15 @@ classdef Pipettes < handle
             switch arg.queuing
                 case 'Now'
                     % move to location now
-                    Pip.pypette.move_to(arg.loc,arg.strategy,false);                    
+                    Pip.pypette.move_to(loc,arg.strategy,false);                    
                 case 'OTqueue'
                     % Add move to location to the OT queue
-                    Pip.pypette.move_to(arg.loc,arg.strategy,1);
+                    Pip.pypette.move_to(loc,arg.strategy,1);
                 case 'ExtQueue'
                     % Send to external queue
                      if arg.locqueue.checkLocQueue
                         % Appropriate parameters are set so send to queue
-                        arg.locqueue.queueMeth(Pip,'move_to',{'loc',arg.loc,'strategy',arg.strategy,'queuing','OTqueue'},'move to ??','localpos',arg.localpos);
+                        arg.locqueue.queueMeth(Pip,'move_to',{loc,'strategy',arg.strategy,'queuing','OTqueue'},'move to ??','localpos',arg.localpos);
 
                     else
                         % Queue is either not defined or parameters not set
@@ -699,7 +702,7 @@ classdef Pipettes < handle
             
         end
         
-        function mix(Pip,reps,vol,loc,varargin)
+        function mix(Pip,reps,vol,varargin)
             % Mix a volume of liquid (in uL) using this pipette
             
             % Inputs: reps     - *int* Number of times the pipette should
@@ -719,7 +722,8 @@ classdef Pipettes < handle
             %                    'OTqueue', or added to an external queue,
             %                    'ExtQueue'. Default: 'OTqueue'.
             
-            % Parse optional variables 
+            % Parse optional variables
+            arg.loc = py.None;
             arg.rate = 1;
             arg.queuing = 'OTqueue';
             arg.locqueue = OTexQueue;
@@ -766,15 +770,15 @@ classdef Pipettes < handle
             switch arg.queuing
                 case 'Now'
                     % Execute now
-                    Pip.pypette.mix(reps,vol,loc,arg.rate,false);                    
+                    Pip.pypette.mix(reps,vol,arg.loc,arg.rate,false);                    
                 case 'OTqueue'
                     % Add to the OT queue
-                    Pip.pypette.mix(reps,vol,loc,arg.rate,true);
+                    Pip.pypette.mix(reps,vol,arg.loc,arg.rate,true);
                 case 'ExtQueue'
                     % Send to external queue
                     if arg.locqueue.checkLocQueue
                         % Appropriate parameters are set so send to queue
-                        arg.locqueue.queueMeth(Pip,'mix',{reps,vol,loc,'rate',arg.rate,'queuing','OTqueue'},'mix ?? uL in ??','localpos',arg.localpos);
+                        arg.locqueue.queueMeth(Pip,'mix',{reps,vol,'loc',arg.loc,'rate',arg.rate,'queuing','OTqueue'},'mix ?? uL in ??','localpos',arg.localpos);
 
                     else
                         % Queue is either not defined or parameters not set
@@ -784,7 +788,7 @@ classdef Pipettes < handle
             
         end
         
-        function blow_out(Pip,loc,varargin)
+        function blow_out(Pip,varargin)
             % Force any remaining liquid to dispense, by moving this 
             % pipette’s plunger to the calibrated 'blow_out' position.
             
@@ -797,7 +801,8 @@ classdef Pipettes < handle
             %                    'OTqueue', or added to an external queue,
             %                    'ExtQueue'. Default: 'OTqueue'.
             
-            % Parse optional variables 
+            % Parse optional variables
+            arg.loc = py.None;
             arg.queuing = 'OTqueue';
             arg.locqueue = OTexQueue;
             arg.localpos = -1; % Where to add this into the comd list
@@ -805,8 +810,8 @@ classdef Pipettes < handle
             arg = parseVarargin(varargin,arg);
 
             % Pass None to python if empty
-            if isempty(loc)
-                loc = py.None;
+            if isempty(arg.loc)
+                arg.loc = py.None;
             end
             
             % Confirm queuing is in the correct format
@@ -816,15 +821,15 @@ classdef Pipettes < handle
             switch arg.queuing
                 case 'Now'
                     % Execute now
-                    Pip.pypette.blow_out(loc,false);                    
+                    Pip.pypette.blow_out(arg.loc,false);                    
                 case 'OTqueue'
                     % Add to the OT queue
-                    Pip.pypette.blow_out(loc,true); 
+                    Pip.pypette.blow_out(arg.loc,true); 
                 case 'ExtQueue'
                     % Send to external queue
                     if arg.locqueue.checkLocQueue
                         % Appropriate parameters are set so send to queue
-                        arg.locqueue.queueMeth(Pip,'blow_out',{loc,'queuing','OTqueue'},'blowout at ??','localpos',arg.localpos);
+                        arg.locqueue.queueMeth(Pip,'blow_out',{'loc',arg.loc,'queuing','OTqueue'},'blowout at ??','localpos',arg.localpos);
 
                     else
                         % Queue is either not defined or parameters not set
@@ -834,7 +839,7 @@ classdef Pipettes < handle
             
         end
         
-        function touch_tip(Pip,loc,varargin)
+        function touch_tip(Pip,varargin)
             % Touch the pipette tip to the side of the well, with the
             % intent of removing left-over droplets.
             
@@ -848,6 +853,7 @@ classdef Pipettes < handle
             %                    'ExtQueue'. Default: 'OTqueue'.
             
             % Parse optional variables 
+            arg.loc = py.None;
             arg.queuing = 'OTqueue';
             arg.locqueue = OTexQueue;
             arg.localpos = -1; % Where to add this into the comd list
@@ -856,8 +862,8 @@ classdef Pipettes < handle
             % Assign default variables if not passed in 
             
             % Pass None to python if empty
-            if isempty(loc)
-                loc = py.None;
+            if isempty(arg.loc)
+                arg.loc = py.None;
             end
             
             % Confirm queuing is in the correct format
@@ -867,15 +873,15 @@ classdef Pipettes < handle
             switch arg.queuing
                 case 'Now'
                     % Execute now
-                    Pip.pypette.touch_tip(loc,false);                    
+                    Pip.pypette.touch_tip(arg.loc,false);                    
                 case 'OTqueue'
                     % Add to the OT queue
-                    Pip.pypette.touch_tip(loc,true); 
+                    Pip.pypette.touch_tip(arg.loc,true); 
                 case 'ExtQueue'
                     % Send to external queue
                     if arg.locqueue.checkLocQueue
                         % Appropriate parameters are set so send to queue
-                        arg.locqueue.queueMeth(Pip,'touch_tip',{loc,'queuing','OTqueue'},'touch tip at ??','localpos',arg.localpos);
+                        arg.locqueue.queueMeth(Pip,'touch_tip',{'loc',arg.loc,'queuing','OTqueue'},'touch tip at ??','localpos',arg.localpos);
 
                     else
                         % Queue is either not defined or parameters not set

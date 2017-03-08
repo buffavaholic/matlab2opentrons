@@ -78,6 +78,20 @@ testCommands.comd(2,:) = {OT.p200,'drop_tip',{py.None,'OTqueue'}};
 
 OT.sendToExtQueue(Scp.Sched,testCommands,40,'absolute',2)
 
+%% Testing updated methods
+
+p200.pick_up_tip('queuing','Now','locqueue',QueueList(1))
+p200.move_to(OT.helper.get_well(plate24,'A1').bottom,'queuing','Now')
+p200.aspirate(100,OT.helper.get_well(plate24,'A1').bottom,'queuing','Now')
+p200.move_to(OT.helper.get_well(plate24,'B2').top,'queuing','Now')
+p200.dispense(100,OT.helper.get_well(plate24,'B2').bottom,'queuing','Now')
+p200.mix(3,50,'queuing','Now')
+p200.blow_out('queuing','Now')
+p200.touch_tip('queuing','Now')
+p200.move_to(OT.helper.get_well(plate24,'B2').top,'queuing','Now')
+p200.drop_tip('queuing','Now')
+p200.home('queuing','Now')
+
 %% Think about how to best populate queue
 
 QueueList = OTexQueue;
@@ -86,13 +100,29 @@ QueueList(1).Name = 'firstThing';
 QueueList(1).TimePoint = 15;
 QueueList(1).MDdescr = 'This is the first thing to run';
 
-p200.pick_up_tip([],'ExtQueue','locqueue',QueueList(1))
+p200.pick_up_tip('queuing','ExtQueue','locqueue',QueueList(1))
+p200.move_to(OT.helper.get_well(plate24,'A1').bottom,'queuing','ExtQueue','locqueue',QueueList(1))
+p200.aspirate(100,OT.helper.get_well(plate24,'A1').bottom,'queuing','ExtQueue','locqueue',QueueList(1))
+p200.move_to(OT.helper.get_well(plate24,'B2').top,'queuing','ExtQueue','locqueue',QueueList(1))
 
 QueueList(2).Name = 'secondThing';
 QueueList(2).TimePoint = 60;
 QueueList(2).TimeOrder = 1;
 QueueList(2).MDdescr = 'This is the second thing to run';
-p200.drop_tip(py.None,'ExtQueue','locqueue',QueueList(2))
+
+
+p200.dispense(100,OT.helper.get_well(plate24,'B2').bottom,'queuing','ExtQueue','locqueue',QueueList(2))
+p200.mix(3,50,'queuing','ExtQueue','locqueue',QueueList(2))
+p200.blow_out('queuing','ExtQueue','locqueue',QueueList(2))
+p200.touch_tip('queuing','ExtQueue','locqueue',QueueList(2))
+p200.move_to(OT.helper.get_well(plate24,'B2').top,'queuing','ExtQueue','locqueue',QueueList(2))
+
+QueueList(3).Name = 'thirdThing';
+QueueList(3).TimePoint = 60;
+QueueList(3).TimeOrder = -1; % add to end of the same time point
+QueueList(3).MDdescr = 'This is the third thing to run';
+
+p200.drop_tip('queuing','ExtQueue','locqueue',QueueList(3))
 
 
 OT.sendToExtQueue(Scp.Sched,QueueList)
