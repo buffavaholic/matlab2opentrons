@@ -127,9 +127,8 @@ contents = cellstr(get(handles.jogDistDropdown,'String'));
 jogDist = str2num(contents{get(handles.jogDistDropdown,'Value')});
 
 % handles.LH.Com.jogDir('Y',-jogDist)
-handles.robot.move_head(pyargs('y',-jogDist,'mode','relative'))
-% fprintf(handles.LHclient,['{"topic" :"driver" ,"type" :"command" ,"name" : "smoothie"',...
-%     ',"message" : "move","param" : {"Y":',num2str(-1*jogDist),'}}'])
+handles.OT.move_head(pyargs('y',-jogDist,'mode','relative'))
+% handles.robot.move_head(pyargs('y',-jogDist,'mode','relative'))
 
 % --- Executes on button press in yPosButton.
 function yPosButton_Callback(hObject, eventdata, handles)
@@ -140,9 +139,8 @@ contents = cellstr(get(handles.jogDistDropdown,'String'));
 jogDist = str2num(contents{get(handles.jogDistDropdown,'Value')});
 
 % handles.LH.Com.jogDir('Y',jogDist)
-handles.robot.move_head(pyargs('y',jogDist,'mode','relative'))
-% fprintf(handles.LHclient,['{"topic" :"driver" ,"type" :"command" ,"name" : "smoothie"',...
-%     ',"message" : "move","param" : {"Y":',num2str(1*jogDist),'}}'])
+handles.OT.move_head(pyargs('y',jogDist,'mode','relative'))
+% handles.robot.move_head(pyargs('y',jogDist,'mode','relative'))
 
 % --- Executes on button press in xNegButton.
 function xNegButton_Callback(hObject, eventdata, handles)
@@ -153,9 +151,8 @@ contents = cellstr(get(handles.jogDistDropdown,'String'));
 jogDist = str2num(contents{get(handles.jogDistDropdown,'Value')});
 
 % handles.LH.Com.jogDir('X',-jogDist)
-handles.robot.move_head(pyargs('x',-jogDist,'mode','relative'))
-% fprintf(handles.LHclient,['{"topic" :"driver" ,"type" :"command" ,"name" : "smoothie"',...
-%     ',"message" : "move","param" : {"X":',num2str(-1*jogDist),'}}'])
+handles.OT.move_head(pyargs('x',-jogDist,'mode','relative'))
+% handles.robot.move_head(pyargs('x',-jogDist,'mode','relative'))
 
 % --- Executes on button press in xPosButton.
 function xPosButton_Callback(hObject, eventdata, handles)
@@ -166,9 +163,8 @@ contents = cellstr(get(handles.jogDistDropdown,'String'));
 jogDist = str2num(contents{get(handles.jogDistDropdown,'Value')});
 
 % handles.LH.Com.jogDir('X',jogDist)
-handles.robot.move_head(pyargs('x',jogDist,'mode','relative'))
-% fprintf(handles.LHclient,['{"topic" :"driver" ,"type" :"command" ,"name" : "smoothie"',...
-%     ',"message" : "move","param" : {"X":',num2str(1*jogDist),'}}'])
+handles.OT.move_head(pyargs('x',jogDist,'mode','relative'))
+% handles.robot.move_head(pyargs('x',jogDist,'mode','relative'))
 
 % --- Executes on button press in zNegButton.
 function zNegButton_Callback(hObject, eventdata, handles)
@@ -179,9 +175,8 @@ contents = cellstr(get(handles.jogDistDropdown,'String'));
 jogDist = str2num(contents{get(handles.jogDistDropdown,'Value')});
 
 % handles.LH.Com.jogDir('Z',-jogDist)
-handles.robot.move_head(pyargs('z',jogDist,'mode','relative'))
-% fprintf(handles.LHclient,['{"topic" :"driver" ,"type" :"command" ,"name" : "smoothie"',...
-%     ',"message" : "move","param" : {"Z":',num2str(-1*jogDist),'}}'])
+handles.OT.move_head(pyargs('z',jogDist,'mode','relative'))
+% handles.robot.move_head(pyargs('z',jogDist,'mode','relative'))
 
 % --- Executes on button press in zPosButton.
 function zPosButton_Callback(hObject, eventdata, handles)
@@ -192,9 +187,8 @@ contents = cellstr(get(handles.jogDistDropdown,'String'));
 jogDist = str2num(contents{get(handles.jogDistDropdown,'Value')});
 
 % handles.LH.Com.jogDir('Z',jogDist)
-handles.robot.move_head(pyargs('z',-jogDist,'mode','relative'))
-% fprintf(handles.LHclient,['{"topic" :"driver" ,"type" :"command" ,"name" : "smoothie"',...
-%     ',"message" : "move","param" : {"Z":',num2str(1*jogDist),'}}'])
+handles.OT.move_head(pyargs('z',-jogDist,'mode','relative'))
+% handles.robot.move_head(pyargs('z',-jogDist,'mode','relative'))
 
 
 % --- Executes on selection change in jogDistDropdown.
@@ -226,11 +220,8 @@ function homeAllButton_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-handles.robot.home()
-% handles.LH.Com.homeAxis('ZAB')
-% handles.LH.Com.homeAxis('XY')
-% fprintf(handles.LHclient,['{"topic" :"driver" ,"type" :"command" ,"name" : "smoothie"',...
-%     ',"message" : "home","param" : {"":""}}'])
+handles.OT.home();
+% handles.robot.home()
 
 % --- Executes on button press in homeXbutton.
 function homeXbutton_Callback(hObject, eventdata, handles)
@@ -238,10 +229,8 @@ function homeXbutton_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% handles.LH.Com.homeAxis('X')
-handles.robot.home('x')
-% fprintf(handles.LHclient,['{"topic" :"driver" ,"type" :"command" ,"name" : "smoothie"',...
-%     ',"message" : "home","param" : {"X":""}}'])
+handles.OT.home('x');
+% handles.robot.home('x')
 
 % --- Executes on button press in homeYbutton.
 function homeYbutton_Callback(hObject, eventdata, handles)
@@ -249,10 +238,8 @@ function homeYbutton_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% handles.LH.Com.homeAxis('Y')
-handles.robot.home('y')
-% fprintf(handles.LHclient,['{"topic" :"driver" ,"type" :"command" ,"name" : "smoothie"',...
-%     ',"message" : "home","param" : {"Y":""}}'])
+handles.OT.home('y');
+% handles.robot.home('y')
 
 % --- Executes on button press in homeZbutton.
 function homeZbutton_Callback(hObject, eventdata, handles)
@@ -260,10 +247,8 @@ function homeZbutton_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% handles.LH.Com.homeAxis('Z')
-handles.robot.home('z')
-% fprintf(handles.LHclient,['{"topic" :"driver" ,"type" :"command" ,"name" : "smoothie"',...
-%     ',"message" : "home","param" : {"Z":""}}'])
+handles.OT.home('z');
+% handles.robot.home('z')
 
 % --- Executes on button press in homeAbutton.
 function homeAbutton_Callback(hObject, eventdata, handles)
@@ -271,10 +256,8 @@ function homeAbutton_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% handles.LH.Com.homeAxis('A')
-handles.robot.home('a')
-% fprintf(handles.LHclient,['{"topic" :"driver" ,"type" :"command" ,"name" : "smoothie"',...
-%     ',"message" : "home","param" : {"A":""}}'])
+handles.OT.home('a');
+% handles.robot.home('a')
 
 % --- Executes on button press in homeBbutton.
 function homeBbutton_Callback(hObject, eventdata, handles)
@@ -282,10 +265,8 @@ function homeBbutton_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% handles.LH.Com.homeAxis('B')
-handles.robot.home('b')
-% fprintf(handles.LHclient,['{"topic" :"driver" ,"type" :"command" ,"name" : "smoothie"',...
-%     ',"message" : "home","param" : {"B":""}}'])
+handles.OT.home('b');
+% handles.robot.home('b')
 
 % --- Executes on button press in jumpA1Button.
 function jumpA1Button_Callback(hObject, eventdata, handles)
@@ -294,8 +275,8 @@ function jumpA1Button_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Left pipette extreme [10, 397,121]
-
-handles.robot.move_to(handles.deckSlots.A1);
+handles.OT.move_to(handles.deckSlots.A1);
+% handles.robot.move_to(handles.deckSlots.A1);
 % posIndex = handles.LH.Com.str2inds('A1');
 % posCoords = handles.LH.Deck.cornerCoords{posIndex(1),posIndex(2)};
 % if get(handles.rightAxisToggleBtn,'Value')
@@ -318,7 +299,7 @@ function jumpA2Button_Callback(hObject, eventdata, handles)
 
 % Left pipette extreme [9, 262,121]
 
-handles.robot.move_to(handles.deckSlots.A2);
+handles.OT.move_to(handles.deckSlots.A2);
 % posIndex = handles.LH.Com.str2inds('A2');
 % posCoords = handles.LH.Deck.cornerCoords{posIndex(1),posIndex(2)};
 % if get(handles.rightAxisToggleBtn,'Value')
@@ -340,7 +321,7 @@ function jumpA3Button_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Left pipette extreme [6, 126,121]
-handles.robot.move_to(handles.deckSlots.A3);
+handles.OT.move_to(handles.deckSlots.A3);
 % posIndex = handles.LH.Com.str2inds('A3');
 % posCoords = handles.LH.Deck.cornerCoords{posIndex(1),posIndex(2)};
 % if get(handles.rightAxisToggleBtn,'Value')
@@ -362,7 +343,7 @@ function jumpB1Button_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Left pipette extreme [103.5, 397,121]
-handles.robot.move_to(handles.deckSlots.B1);
+handles.OT.move_to(handles.deckSlots.B1);
 
 % posIndex = handles.LH.Com.str2inds('B1');
 % posCoords = handles.LH.Deck.cornerCoords{posIndex(1),posIndex(2)};
@@ -386,7 +367,7 @@ function jumpB2Button_Callback(hObject, eventdata, handles)
 
 % Left pipette extreme [102, 263,120]
 
-handles.robot.move_to(handles.deckSlots.B2);
+handles.OT.move_to(handles.deckSlots.B2);
 
 % posIndex = handles.LH.Com.str2inds('B2');
 % posCoords = handles.LH.Deck.cornerCoords{posIndex(1),posIndex(2)};
@@ -410,7 +391,7 @@ function jumpB3Button_Callback(hObject, eventdata, handles)
 
 % Left pipette extreme [99, 126,121]
 
-handles.robot.move_to(handles.deckSlots.B3);
+handles.OT.move_to(handles.deckSlots.B3);
 
 % posIndex = handles.LH.Com.str2inds('B3');
 % posCoords = handles.LH.Deck.cornerCoords{posIndex(1),posIndex(2)};
@@ -434,7 +415,7 @@ function jumpC1Button_Callback(hObject, eventdata, handles)
 
 % Left pipette extreme [196, 397,120]
 
-handles.robot.move_to(handles.deckSlots.C1);
+handles.OT.move_to(handles.deckSlots.C1);
 
 % posIndex = handles.LH.Com.str2inds('C1');
 % posCoords = handles.LH.Deck.cornerCoords{posIndex(1),posIndex(2)};
@@ -459,7 +440,7 @@ function jumpC2Button_Callback(hObject, eventdata, handles)
 
 % Left pipette extreme [195, 263,120]
 
-handles.robot.move_to(handles.deckSlots.C2);
+handles.OT.move_to(handles.deckSlots.C2);
 
 % posIndex = handles.LH.Com.str2inds('C2');
 % posCoords = handles.LH.Deck.cornerCoords{posIndex(1),posIndex(2)};
@@ -484,7 +465,7 @@ function jumpC3Button_Callback(hObject, eventdata, handles)
 
 % Left pipette extreme [193, 128,121]
 
-handles.robot.move_to(handles.deckSlots.C3);
+handles.OT.move_to(handles.deckSlots.C3);
 
 % posIndex = handles.LH.Com.str2inds('C3');
 % posCoords = handles.LH.Deck.cornerCoords{posIndex(1),posIndex(2)};
@@ -509,7 +490,7 @@ function jumpD1Button_Callback(hObject, eventdata, handles)
 
 % Left pipette extreme [288, 398,118]
 
-handles.robot.move_to(handles.deckSlots.D1);
+handles.OT.move_to(handles.deckSlots.D1);
 
 % posIndex = handles.LH.Com.str2inds('D1');
 % posCoords = handles.LH.Deck.cornerCoords{posIndex(1),posIndex(2)};
@@ -533,7 +514,7 @@ function jumpD2Button_Callback(hObject, eventdata, handles)
 
 % Left pipette extreme [288, 263,120]
 
-handles.robot.move_to(handles.deckSlots.D2);
+handles.OT.move_to(handles.deckSlots.D2);
 
 % posIndex = handles.LH.Com.str2inds('D2');
 % posCoords = handles.LH.Deck.cornerCoords{posIndex(1),posIndex(2)};
@@ -558,7 +539,7 @@ function jumpD3Button_Callback(hObject, eventdata, handles)
 
 % Left pipette extreme [285, 128,121]
 
-handles.robot.move_to(handles.deckSlots.D3);
+handles.OT.move_to(handles.deckSlots.D3);
 
 % posIndex = handles.LH.Com.str2inds('D3');
 % posCoords = handles.LH.Deck.cornerCoords{posIndex(1),posIndex(2)};
@@ -583,7 +564,7 @@ function jumpE1Button_Callback(hObject, eventdata, handles)
 
 % Left pipette extreme [381, 399,117]
 
-handles.robot.move_to(handles.deckSlots.E1);
+handles.OT.move_to(handles.deckSlots.E1);
 
 % posIndex = handles.LH.Com.str2inds('E1');
 % posCoords = handles.LH.Deck.cornerCoords{posIndex(1),posIndex(2)};
@@ -608,7 +589,7 @@ function jumpE2Button_Callback(hObject, eventdata, handles)
 
 % Left pipette extreme [379, 264,119]
 
-handles.robot.move_to(handles.deckSlots.E2);
+handles.OT.move_to(handles.deckSlots.E2);
 
 % posIndex = handles.LH.Com.str2inds('E2');
 % posCoords = handles.LH.Deck.cornerCoords{posIndex(1),posIndex(2)};
@@ -632,7 +613,7 @@ function jumpE3Button_Callback(hObject, eventdata, handles)
 
 % Left pipette extreme [379, 128,120]
 
-handles.robot.move_to(handles.deckSlots.E3);
+handles.OT.move_to(handles.deckSlots.E3);
 
 % posIndex = handles.LH.Com.str2inds('E3');
 % posCoords = handles.LH.Deck.cornerCoords{posIndex(1),posIndex(2)};
@@ -658,10 +639,10 @@ function plungeUpBtn_Callback(hObject, eventdata, handles)
 
 moveDist = -1*str2double(get(handles.plungeIncrGrp.SelectedObject,'String'));
 if get(handles.rightAxisToggleBtn,'Value')
-    handles.robot.move_plunger(pyargs('a',moveDist,'mode','relative'));
+    handles.OT.move_plunger(pyargs('a',moveDist,'mode','relative'));
 %     handles.LH.Com.jogDir('A',moveDist)
 else
-    handles.robot.move_plunger(pyargs('b',moveDist,'mode','relative'));
+    handles.OT.move_plunger(pyargs('b',moveDist,'mode','relative'));
 %     handles.LH.Com.jogDir('B',moveDist)
 end
 
@@ -673,10 +654,10 @@ function plungeDownBtn_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 moveDist = str2double(get(handles.plungeIncrGrp.SelectedObject,'String'));
 if get(handles.rightAxisToggleBtn,'Value')
-    handles.robot.move_plunger(pyargs('a',moveDist,'mode','relative'));
+    handles.OT.move_plunger(pyargs('a',moveDist,'mode','relative'));
 %     handles.LH.Com.jogDir('A',moveDist)
 else
-    handles.robot.move_plunger(pyargs('b',moveDist,'mode','relative'));
+    handles.OT.move_plunger(pyargs('b',moveDist,'mode','relative'));
 %     handles.LH.Com.jogDir('B',moveDist)
 end
 
@@ -769,7 +750,7 @@ if isfield(handles.(axisID),'pointer')
     if isnumeric(handles.(axisID).pos.(plungerPosStr))
         % Passed checks move plunger position
         posLoc = handles.(axisID).pos.(plungerPosStr);
-        handles.robot.move_plunger(pyargs(robotAxis,posLoc));    
+        handles.OT.move_plunger(pyargs(robotAxis,posLoc));    
     else
         error('Plunger position for this location and pipette need to be calibrated first.');
     end
@@ -841,7 +822,7 @@ if isfield(handles.(axisID),'pointer')
     if isnumeric(handles.(axisID).pos.(plungerPosStr))
         % Passed checks move plunger position
         posLoc = handles.(axisID).pos.(plungerPosStr);
-        handles.robot.move_plunger(pyargs(robotAxis,posLoc));    
+        handles.OT.move_plunger(pyargs(robotAxis,posLoc));    
     else
         error('Plunger position for this location and pipette need to be calibrated first.');
     end
@@ -913,7 +894,7 @@ if isfield(handles.(axisID),'pointer')
     if isnumeric(handles.(axisID).pos.(plungerPosStr))
         % Passed checks move plunger position
         posLoc = handles.(axisID).pos.(plungerPosStr);
-        handles.robot.move_plunger(pyargs(robotAxis,posLoc));    
+        handles.OT.move_plunger(pyargs(robotAxis,posLoc));    
     else
         error('Plunger position for this location and pipette need to be calibrated first.');
     end
@@ -1126,7 +1107,7 @@ if isfield(handles.(axisID),'pointer')
     if isnumeric(handles.(axisID).pos.(plungerPosStr))
         % Passed checks move plunger position
         posLoc = handles.(axisID).pos.(plungerPosStr);
-        handles.robot.move_plunger(pyargs(robotAxis,posLoc));    
+        handles.OT.move_plunger(pyargs(robotAxis,posLoc));    
     else
         error('Plunger position for this location and pipette need to be calibrated first.');
     end
@@ -1174,7 +1155,7 @@ if setBflag == 0;
     if isfield(handles.B,'pointer')
         handles.B = rmfield(handles.B,'pointer');
     end
-    if isfield(handles.A,'pos')
+    if isfield(handles.B,'pos')
         handles.B = rmfield(handles.B,'pos');
     end
 end

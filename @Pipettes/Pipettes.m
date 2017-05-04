@@ -292,7 +292,7 @@ classdef Pipettes < handle
             
         end
         
-        %% Pipette action methods
+        %% Pipette Calibration methods
         
         function calibrate(Pip,stopSite)
             % Calibrate the plunger positions of the pipette
@@ -330,6 +330,10 @@ classdef Pipettes < handle
             % calibration variables
             arg.specified_pos = py.tuple({}); % (Python tuple) Calibration coordinates in py.tuple form. If not supplied use the pipette location.
             
+            % Flag for updating a Dynamic Container only due to stage
+            % movement (i.e. not from the pipette position)
+            arg.update_dyn_stage = 0;
+            
             arg = parseVarargin(varargin,arg);
             
             % Get relative position vector
@@ -344,6 +348,15 @@ classdef Pipettes < handle
             % Generate reference tuple
             refCoord = py.tuple({cont,rel_pos_vect});
             
+            % Check If Dynamic Container
+            if cont == Pip.parent.DynCont.pointer
+                arg.specified_pos = Pip.updateDynContCalib(cont,well);
+                if arg.update_dyn_stage == 0
+                    % Use pipette position to calibrate
+                    arg.specified_pos = py.tuple({});
+                end
+            end
+      
             % Calibrate container position using the OpenTrons python meth.
             % If specified_pos is not supplied then calibrate based on
             % pipette location
@@ -355,7 +368,58 @@ classdef Pipettes < handle
                 Pip.pypette.calibrate_position(refCoord,arg.specified_pos);
             end 
         end
-             
+        
+        function specified_pos = updateDynContCalib(Pip,cont,well)
+            % 
+            
+            % Set a placeholder for specified_pos
+            specified_pos = py.tuple({});
+            
+            % Get stage properties
+            stage = Pip.parent.DynCont.stage;
+            stage_units = Pip.parent.DynCont.stage_units;
+            stage_dir = Pip.parent.DynCont.stage_dir;
+            stage_axisOrder = Pip.parent.DynCont.stage_axisOrder;
+            % Get current stage Position
+            newXY = stage.XY;
+            
+            % Calculate change and set new reference for given axis
+            switch Pip.axis
+                case 'a'
+                    oldXY = Pip.parent.DynCont.aCalibXY;
+                    Pip.parent.DynCont.aCalibXY = newXY;
+                    if isempty(oldXY)
+                        return
+                    end
+                    delta = newXY - oldXY;
+                case 'b'
+                    oldXY = Pip.parent.DynCont.bCalibXY;
+                    Pip.parent.DynCont.bCalibXY = newXY;
+                    if isempty(oldXY)
+                        return
+                    end
+                    delta = newXY - oldXY;
+            end
+            
+            % convert units to mm
+            switch stage_units
+                case 'micrometer'
+                    delta = delta/1000;
+                case 'millimeter'
+                    delta = delta/1;
+            end
+            % set direction and axis
+            delX = stage_dir(1)*delta(stage_axisOrder(1));
+            delY = stage_dir(2)*delta(stage_axisOrder(2));
+            % get current calib position
+            currCalib = Pip.pypette.calibrator.convert(cont,Pip.parent.rel_pos(cont,well));
+            currCalibVV = currCalib.to_tuple;
+            
+            % return specified position cell array
+            specified_pos = {currCalibVV.x+delX,currCalibVV.y+delY,currCalibVV.z};
+        end
+        
+       
         %% Tip Methods
         
         function pick_up_tip(Pip,varargin)
@@ -375,7 +439,9 @@ classdef Pipettes < handle
             switch arg.queuing
                 case 'Now'
                     % Run the pick up tip now
-                    Pip.pypette.pick_up_tip(arg.loc,false);                    
+%                     Pip.pypette.pick_up_tip(arg.loc,false);
+                    % Run as daemon
+                    Pip.parent.runMethDaemon(1,Pip.pypette,'pick_up_tip',arg.loc,false);
                 case 'OTqueue'
                     % Add to the OT queue
                     Pip.pypette.pick_up_tip(arg.loc);
@@ -412,7 +478,9 @@ classdef Pipettes < handle
             switch arg.queuing
                 case 'Now'
                     % Run the drop tip now
-                    Pip.pypette.drop_tip(arg.loc,false);                    
+%                     Pip.pypette.drop_tip(arg.loc,false);
+                    % Run as daemon
+                    Pip.parent.runMethDaemon(1,Pip.pypette,'drop_tip',arg.loc,false);
                 case 'OTqueue'
                     % Add to the OT queue
                     Pip.pypette.drop_tip(arg.loc);
@@ -447,7 +515,9 @@ classdef Pipettes < handle
             switch arg.queuing
                 case 'Now'
                     % Run the drop tip now
-                    Pip.pypette.return_tip(false);                    
+%                     Pip.pypette.return_tip(false);
+                    % Run as daemon
+                    Pip.parent.runMethDaemon(1,Pip.pypette,'return_tip',false);
                 case 'OTqueue'
                     % Add to the OT queue
                     Pip.pypette.return_tip();
@@ -484,7 +554,9 @@ classdef Pipettes < handle
             switch arg.queuing
                 case 'Now'
                     % Home now
-                    Pip.pypette.home(false);                    
+%                     Pip.pypette.home(false);
+                    % Run as daemon
+                    Pip.parent.runMethDaemon(1,Pip.pypette,'home',false);
                 case 'OTqueue'
                     % Add home to the OT queue
                     Pip.pypette.home();
@@ -534,7 +606,9 @@ classdef Pipettes < handle
             switch arg.queuing
                 case 'Now'
                     % move to location now
-                    Pip.pypette.move_to(loc,arg.strategy,false);                    
+%                     Pip.pypette.move_to(loc,arg.strategy,false);
+                    % Run as daemon
+                    Pip.parent.runMethDaemon(1,Pip.pypette,'move_to',loc,arg.strategy,false);
                 case 'OTqueue'
                     % Add move to location to the OT queue
                     Pip.pypette.move_to(loc,arg.strategy,1);
@@ -568,7 +642,9 @@ classdef Pipettes < handle
             switch arg.queuing
                 case 'Now'
                     % pause now
-                    Pip.pypette.delay(time,false);                    
+%                     Pip.pypette.delay(time,false);
+                    % Run as daemon
+                    Pip.parent.runMethDaemon(1,Pip.pypette,'delay',time,false);
                 case 'OTqueue'
                     % Add pause to the OT queue
                     Pip.pypette.delay(time,true);
@@ -627,7 +703,9 @@ classdef Pipettes < handle
             switch arg.queuing
                 case 'Now'
                     % Execute now
-                    Pip.pypette.aspirate(vol,loc,arg.rate,false);                    
+%                     Pip.pypette.aspirate(vol,loc,arg.rate,false);
+                    % Run as daemon
+                    Pip.parent.runMethDaemon(1,Pip.pypette,'aspirate',vol,loc,arg.rate,false);
                 case 'OTqueue'
                     % Add to the OT queue
                     Pip.pypette.aspirate(vol,loc,arg.rate,true);
@@ -684,7 +762,9 @@ classdef Pipettes < handle
             switch arg.queuing
                 case 'Now'
                     % Execute now
-                    Pip.pypette.dispense(vol,loc,arg.rate,false);                    
+%                     Pip.pypette.dispense(vol,loc,arg.rate,false);
+                    % Run as daemon
+                    Pip.parent.runMethDaemon(1,Pip.pypette,'dispense',vol,loc,arg.rate,false);
                 case 'OTqueue'
                     % Add to the OT queue
                     Pip.pypette.dispense(vol,loc,arg.rate,true);
@@ -770,7 +850,9 @@ classdef Pipettes < handle
             switch arg.queuing
                 case 'Now'
                     % Execute now
-                    Pip.pypette.mix(reps,vol,arg.loc,arg.rate,false);                    
+%                     Pip.pypette.mix(reps,vol,arg.loc,arg.rate,false);
+                    % Run as daemon
+                    Pip.parent.runMethDaemon(1,Pip.pypette,'mix',reps,vol,arg.loc,arg.rate,false);
                 case 'OTqueue'
                     % Add to the OT queue
                     Pip.pypette.mix(reps,vol,arg.loc,arg.rate,true);
@@ -821,7 +903,9 @@ classdef Pipettes < handle
             switch arg.queuing
                 case 'Now'
                     % Execute now
-                    Pip.pypette.blow_out(arg.loc,false);                    
+%                     Pip.pypette.blow_out(arg.loc,false);
+                    % Run as daemon
+                    Pip.parent.runMethDaemon(1,Pip.pypette,'blow_out',arg.loc,false);
                 case 'OTqueue'
                     % Add to the OT queue
                     Pip.pypette.blow_out(arg.loc,true); 
@@ -873,7 +957,9 @@ classdef Pipettes < handle
             switch arg.queuing
                 case 'Now'
                     % Execute now
-                    Pip.pypette.touch_tip(arg.loc,false);                    
+%                     Pip.pypette.touch_tip(arg.loc,false);
+                    % Run as daemon
+                    Pip.parent.runMethDaemon(1,Pip.pypette,'touch_tip',arg.loc,false);
                 case 'OTqueue'
                     % Add to the OT queue
                     Pip.pypette.touch_tip(arg.loc,true); 

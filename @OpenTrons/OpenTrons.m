@@ -25,6 +25,16 @@ classdef OpenTrons < dynamicprops
         
         %% Local queues
         QueueList;
+        isRunning = 0;
+        runningThread;
+        
+        %% Dynamic Container
+        DynCont = struct('pointer',[],'name',[],'aCalibXY',[],'bCalibXY',[],...
+            'stage',[],'stage_units',[],'stage_dir',[],'stage_axisOrder',[]);
+        
+        %% GUI handles
+        controlGui;
+        stopGui;
     end
     
     methods (Static = true)
@@ -74,7 +84,9 @@ classdef OpenTrons < dynamicprops
             
             % Open up the OT GUI
             if startGUI == 1
-                OTgui(OT);
+                OT.controlGui = OTgui(OT);
+                OT.stopGui = EmergStop(OT);
+                WinOnTop(OT.stopGui,true); % Make the emergency stop button always be on top
             end
             % Finally, move back to the directory origionally started in
             cd(curDir);
@@ -99,7 +111,221 @@ classdef OpenTrons < dynamicprops
         end
         
         
+        %% Daemon methods
         
+        function runMethDaemon(OT,waitFlag,clPointer,methName,varargin)
+            % Run a method as a daemon using python keyword variables
+            
+            % Check if a thread is currently running
+            if OT.isRunning == 1
+                while OT.runningThread.isAlive()
+                    fprintf('Waiting for OT to finish last command \n');
+                    pause(0.1)
+                end
+                
+                OT.isRunning = 0;
+            end
+            % Start the method running on the thread
+            OT.runningThread = OT.helper.runDaemonMethod(clPointer,methName,varargin{:});
+            OT.isRunning = 1;
+            
+%             OT.pollDaemon;
+            % if set to wait, poll the thread to see if it is finished. 
+            if waitFlag == 1
+                while OT.runningThread.isAlive()
+                    pause(0.5)
+                end
+                OT.isRunning = 0;
+            end
+            
+        end
+%         function runMethDaemon(OT,waitFlag,clPointer,methName,varargin)
+%             % Run a method as a daemon
+%             
+%             % Check if a thread is currently running
+%             if OT.isRunning == 1
+%                 while OT.runningThread.isAlive()
+%                     fprintf('Waiting for OT to finish last command \n');
+%                     pause(0.1)
+%                 end
+%                 
+%                 OT.isRunning = 0;
+%             end
+%             % Start the method running on the thread
+%             OT.runningThread = OT.helper.runDaemonMethod(clPointer,methName,varargin{:});
+%             OT.isRunning = 1;
+%             
+% %             OT.pollDaemon;
+%             % if set to wait, poll the thread to see if it is finished. 
+%             if waitFlag == 1
+%                 while OT.runningThread.isAlive()
+%                     pause(0.5)
+%                 end
+%                 OT.isRunning = 0;
+%             end
+%             
+%         end
+        
+%         function runMethDaemonKW(OT,waitFlag,clPointer,methName,varargin)
+%             % Run a method as a daemon using python keyword variables
+%             
+%             % Check if a thread is currently running
+%             if OT.isRunning == 1
+%                 while OT.runningThread.isAlive()
+%                     fprintf('Waiting for OT to finish last command \n');
+%                     pause(0.1)
+%                 end
+%                 
+%                 OT.isRunning = 0;
+%             end
+%             % Start the method running on the thread
+%             OT.runningThread = OT.helper.runDaemonMethodKW(clPointer,methName,varargin{1});
+%             OT.isRunning = 1;
+%             
+% %             OT.pollDaemon;
+%             % if set to wait, poll the thread to see if it is finished. 
+%             if waitFlag == 1
+%                 while OT.runningThread.isAlive()
+%                     pause(0.5)
+%                 end
+%                 OT.isRunning = 0;
+%             end
+%             
+%         end
+%         
+%         function runMethDaemonGen(OT,waitFlag,clPointer,methName,varargin)
+%             % Run a method as a daemon using python keyword variables
+%             
+%             % Check if a thread is currently running
+%             if OT.isRunning == 1
+%                 while OT.runningThread.isAlive()
+%                     fprintf('Waiting for OT to finish last command \n');
+%                     pause(0.1)
+%                 end
+%                 
+%                 OT.isRunning = 0;
+%             end
+%             % Start the method running on the thread
+%             OT.runningThread = OT.helper.runDaemonMethodGen(clPointer,methName,varargin{:});
+%             OT.isRunning = 1;
+%             
+% %             OT.pollDaemon;
+%             % if set to wait, poll the thread to see if it is finished. 
+%             if waitFlag == 1
+%                 while OT.runningThread.isAlive()
+%                     pause(0.5)
+%                 end
+%                 OT.isRunning = 0;
+%             end
+%             
+%         end
+        
+%         function pollDaemon(OT)
+%             % Periodically poll the thread to see if the daemon is done
+%             % without blocking the main thread
+%             
+%             start(timer('StartDelay',0.5,...
+%                             'TimerFcn',@(~,~) OT.checkDaemon,...
+%                             'Name','checkDaemon'));
+%         end
+%         function checkDaemon(OT)
+%             % Simple method to check the status of the thread
+%             
+%             if OT.isRunning == 1
+%                 if OT.runningThread.isAlive()==1
+%                     OT.pollDaemon;                    
+%                 else
+%                     OT.isRunning = 0;
+%                 end 
+%             end            
+%         end
+        
+        %% Movement methods
+        
+        function move_head(OT,varPyargsIn)
+            % call the python method to move the robot head
+            
+            % Inputs: varPyargsIn - *pyargs* the options for moving the
+            %                       head should be passed in as an already
+            %                       packaged pyargs that specifies options
+            %                       for distance in each axis and mode. For
+            %                       example this would be passed in to move
+            %                       the head in the z direction 5 mm in a
+            %                       relative mode:
+            %                          OT.move_head(pyargs('z',5,'mode','relative')
+            
+            % Check that the input is already a pyargs
+            if strcmp(class(varPyargsIn),'pyargs')==0
+                error('Input to OT.move_head must be a single pyarg variable')
+            end
+            
+            % run move_head as a daemon
+            OT.runMethDaemon(1,OT.robot,'move_head',varPyargsIn);
+            
+        end
+        
+        function home(OT,axis)
+            % call the python method to home the robot
+            
+            if nargin == 1
+                % Home all axes by passing nothing in
+                
+                % run home as a daemon
+                OT.runMethDaemon(1,OT.robot,'home');
+            else
+                % run home as a daemon
+                OT.runMethDaemon(1,OT.robot,'home',axis);
+            end
+        end
+        
+        function move_to(OT,loc, varargin)
+            % Move robot to given location based on this pipettes
+            % calibration
+            %     No checking that loc is of the right format because it
+            %     can be several different types.
+            
+            % Parse optional variables
+            arg.strategy = 'arc';
+            arg.instrument = py.None;
+            
+            arg = parseVarargin(varargin,arg);
+            
+            if isempty(loc)
+                loc = py.None;
+            end
+            
+            if isempty(arg.strategy)
+                arg.strategy = 'arc';
+            end
+            
+            % Confirm strategy is in the correct format
+            assert(strcmp(arg.strategy,'arc') || strcmp(arg.strategy,'direct'),...
+                'move_to strategy must be either ''arc'' or ''direct'' ');
+            
+            OT.runMethDaemon(1,OT.robot,'move_to',loc,pyargs('instrument',arg.instrument,'strategy',arg.strategy));
+            
+        end
+        
+        function move_plunger(OT,varPyargsIn)
+            % call the python method to move the robot plungers
+            
+            % Inputs: varPyargsIn - *pyargs* the options for moving the
+            %                       head should be passed in as an already
+            %                       packaged pyargs that specifies options
+            %                       for distance in each axis and mode. For
+            %                       example this would be passed in to move
+            %                       the a plunger 1 mm in a
+            %                       relative mode:
+            %                          OT.move_plunger(pyargs('a',5,'mode','relative')
+            
+            % Check that the input is already a pyargs
+            if strcmp(class(varPyargsIn),'pyargs')==0
+                error('Input to OT.move_head must be a single pyarg variable')
+            end
+            
+            % run move_head as a daemon
+            OT.runMethDaemon(1,OT.robot,'move_plunger',varPyargsIn);
+        end
         %% Container Methods
         
         function contHandle = loadContainer(OT,contRef,contName,slot)
@@ -260,6 +486,15 @@ classdef OpenTrons < dynamicprops
             
             OT.robot.clear_commands();
             
+            % Check for dynamic containers and update calibration
+            if ~isempty(OT.DynCont.aCalibXY)
+                OT.axisA.calibrate_position(OT.DynCont.pointer,'A1','update_dyn_stage',1);
+            end
+                
+            if ~isempty(OT.DynCont.bCalibXY)
+                OT.axisB.calibrate_position(OT.DynCont.pointer,'A1','update_dyn_stage',1);
+            end
+            
             queue = queueCell{:};
             commandCell =queue.comd;
             
@@ -270,9 +505,41 @@ classdef OpenTrons < dynamicprops
                 runner.(commandCell{k,2})(vars{:});
             end
             
-            OT.robot.run()
+%             OT.robot.run()
+            if OT.isRunning == 1
+                while OT.runningThread.isAlive()
+                    fprintf('Waiting for OT to finish last command \n');
+                    pause(0.1)
+                end
+                
+            end 
+            OT.runningThread = OT.helper.runDaemonRun(OT.robot);
+            OT.isRunning = 1;
 %             OT.runPar();
             
+        end
+        
+        %% Dynamic Container Methods
+        
+        function set_dynamic_cont(OT,cont,stage,varargin)
+            % Specifies which container is dynamic (i.e. the moveable stage
+            % container) so that its calibration can be updated with any
+            % movement the stage does.
+            
+            % Parse optional variables
+            arg.stage_units = 'micrometer'; 
+            arg.stage_dir = [1,1];
+            arg.stage_axisOrder = [2,1];
+            
+            arg = parseVarargin(varargin,arg);
+            
+            % Add properties to the DynCont structure
+            OT.DynCont.pointer = cont;                  % Container pointer
+            OT.DynCont.name = char(cont.get_name());    % Container name
+            OT.DynCont.stage = stage;                   % Stage pointer
+            OT.DynCont.stage_units = arg.stage_units;   % Stage units
+            OT.DynCont.stage_dir = arg.stage_dir;       % Stage axis directions
+            OT.DynCont.stage_axisOrder = arg.stage_axisOrder;       % Stage order of axis
         end
         
         %% Internal Methods
