@@ -1,5 +1,5 @@
 import threading
-
+import opentrons
 from opentrons.util.vector import Vector
 
 def get_well(plate,index):
@@ -48,4 +48,8 @@ def runDaemonMethod(objIn,methIn,*argsIn,**kwargsIn):
     d.start()
 
     return d
+
+def getVersion():
+    
+    return opentrons.__version__
     
