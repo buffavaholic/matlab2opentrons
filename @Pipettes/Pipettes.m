@@ -537,6 +537,13 @@ classdef Pipettes < handle
         
         %% General movement methods
         
+        function boolOut = check_conn(Pip)
+            % Check that the robot is connected to the software
+            
+            boolOut = Pip.parent.check_conn();
+        end
+            
+        
         function home(Pip,varargin)
             % Home this pipette's axis either right now or during a
             % protocol
@@ -554,9 +561,12 @@ classdef Pipettes < handle
             switch arg.queuing
                 case 'Now'
                     % Home now
-%                     Pip.pypette.home(false);
                     % Run as daemon
-                    Pip.parent.runMethDaemon(1,Pip.pypette,'home',false);
+                    if Pip.check_conn==1
+                        Pip.parent.runMethDaemon(1,Pip.pypette,'home',false);
+                    else
+                        warningdlg('Robot not connected, connect to robot first');
+                    end
                 case 'OTqueue'
                     % Add home to the OT queue
                     Pip.pypette.home();
@@ -608,7 +618,11 @@ classdef Pipettes < handle
                     % move to location now
 %                     Pip.pypette.move_to(loc,arg.strategy,false);
                     % Run as daemon
-                    Pip.parent.runMethDaemon(1,Pip.pypette,'move_to',loc,arg.strategy,false);
+                    if Pip.check_conn==1
+                        Pip.parent.runMethDaemon(1,Pip.pypette,'move_to',loc,arg.strategy,false);
+                    else
+                        warningdlg('Robot not connected, connect to robot first');
+                    end
                 case 'OTqueue'
                     % Add move to location to the OT queue
                     Pip.pypette.move_to(loc,arg.strategy,1);
@@ -644,7 +658,11 @@ classdef Pipettes < handle
                     % pause now
 %                     Pip.pypette.delay(time,false);
                     % Run as daemon
-                    Pip.parent.runMethDaemon(1,Pip.pypette,'delay',time,false);
+                    if Pip.check_conn==1
+                        Pip.parent.runMethDaemon(1,Pip.pypette,'delay',time,false);
+                    else
+                        warningdlg('Robot not connected, connect to robot first');
+                    end
                 case 'OTqueue'
                     % Add pause to the OT queue
                     Pip.pypette.delay(time,true);
@@ -705,7 +723,11 @@ classdef Pipettes < handle
                     % Execute now
 %                     Pip.pypette.aspirate(vol,loc,arg.rate,false);
                     % Run as daemon
-                    Pip.parent.runMethDaemon(1,Pip.pypette,'aspirate',vol,loc,arg.rate,false);
+                    if Pip.check_conn==1
+                        Pip.parent.runMethDaemon(1,Pip.pypette,'aspirate',vol,loc,arg.rate,false);
+                    else
+                        warningdlg('Robot not connected, connect to robot first');
+                    end
                 case 'OTqueue'
                     % Add to the OT queue
                     Pip.pypette.aspirate(vol,loc,arg.rate,true);
@@ -764,7 +786,11 @@ classdef Pipettes < handle
                     % Execute now
 %                     Pip.pypette.dispense(vol,loc,arg.rate,false);
                     % Run as daemon
-                    Pip.parent.runMethDaemon(1,Pip.pypette,'dispense',vol,loc,arg.rate,false);
+                    if Pip.check_conn==1
+                        Pip.parent.runMethDaemon(1,Pip.pypette,'dispense',vol,loc,arg.rate,false);
+                    else
+                        warningdlg('Robot not connected, connect to robot first');
+                    end
                 case 'OTqueue'
                     % Add to the OT queue
                     Pip.pypette.dispense(vol,loc,arg.rate,true);
@@ -852,7 +878,11 @@ classdef Pipettes < handle
                     % Execute now
 %                     Pip.pypette.mix(reps,vol,arg.loc,arg.rate,false);
                     % Run as daemon
-                    Pip.parent.runMethDaemon(1,Pip.pypette,'mix',reps,vol,arg.loc,arg.rate,false);
+                    if Pip.check_conn==1
+                        Pip.parent.runMethDaemon(1,Pip.pypette,'mix',reps,vol,arg.loc,arg.rate,false);
+                    else
+                        warningdlg('Robot not connected, connect to robot first');
+                    end
                 case 'OTqueue'
                     % Add to the OT queue
                     Pip.pypette.mix(reps,vol,arg.loc,arg.rate,true);
@@ -905,7 +935,11 @@ classdef Pipettes < handle
                     % Execute now
 %                     Pip.pypette.blow_out(arg.loc,false);
                     % Run as daemon
-                    Pip.parent.runMethDaemon(1,Pip.pypette,'blow_out',arg.loc,false);
+                    if Pip.check_conn==1
+                        Pip.parent.runMethDaemon(1,Pip.pypette,'blow_out',arg.loc,false);
+                    else
+                        warningdlg('Robot not connected, connect to robot first');
+                    end
                 case 'OTqueue'
                     % Add to the OT queue
                     Pip.pypette.blow_out(arg.loc,true); 
@@ -959,7 +993,11 @@ classdef Pipettes < handle
                     % Execute now
 %                     Pip.pypette.touch_tip(arg.loc,false);
                     % Run as daemon
-                    Pip.parent.runMethDaemon(1,Pip.pypette,'touch_tip',arg.loc,false);
+                    if Pip.check_conn==1
+                        Pip.parent.runMethDaemon(1,Pip.pypette,'touch_tip',arg.loc,false);
+                    else
+                        warningdlg('Robot not connected, connect to robot first');
+                    end
                 case 'OTqueue'
                     % Add to the OT queue
                     Pip.pypette.touch_tip(arg.loc,true); 

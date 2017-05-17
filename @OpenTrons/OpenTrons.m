@@ -11,6 +11,7 @@ classdef OpenTrons < dynamicprops
         
         %% Robot class
         robot
+        is_connected = 0;
         
         %% Python helper module
         helper
@@ -87,6 +88,9 @@ classdef OpenTrons < dynamicprops
                 OT.controlGui = OTgui(OT);
                 OT.stopGui = EmergStop(OT);
                 WinOnTop(OT.stopGui,true); % Make the emergency stop button always be on top
+                
+                % Open the deck gui
+                DeckGUI(OT);
             end
             % Finally, move back to the directory origionally started in
             cd(curDir);
@@ -110,6 +114,40 @@ classdef OpenTrons < dynamicprops
             
         end
         
+        function connConf = connect(OT,port)
+            % Connects the robot to a port
+            
+             try
+                 connConf = OT.robot.connect(port);
+                 
+                 if connConf == 1
+                     OT.is_connected = 1;
+                 else
+                     warning('Could not connect to that port');
+                     OT.is_connected = 0;
+                     OT.disconnect;
+                 end  
+             catch
+                 warning('Could not connect to that port');
+                 OT.disconnect();
+             end
+        end
+        
+        function disconnect(OT)
+            % Disconnect robot connection
+            
+            OT.robot.disconnect();
+            OT.is_connected = 0;
+        end
+        
+        function connStatus = check_conn(OT)
+            % Check the connection status of the robot
+            
+            connStatus = OT.robot.is_connected();
+            
+            OT.is_connected = connStatus;
+        end
+            
         
         %% Daemon methods
         
@@ -139,107 +177,7 @@ classdef OpenTrons < dynamicprops
             end
             
         end
-%         function runMethDaemon(OT,waitFlag,clPointer,methName,varargin)
-%             % Run a method as a daemon
-%             
-%             % Check if a thread is currently running
-%             if OT.isRunning == 1
-%                 while OT.runningThread.isAlive()
-%                     fprintf('Waiting for OT to finish last command \n');
-%                     pause(0.1)
-%                 end
-%                 
-%                 OT.isRunning = 0;
-%             end
-%             % Start the method running on the thread
-%             OT.runningThread = OT.helper.runDaemonMethod(clPointer,methName,varargin{:});
-%             OT.isRunning = 1;
-%             
-% %             OT.pollDaemon;
-%             % if set to wait, poll the thread to see if it is finished. 
-%             if waitFlag == 1
-%                 while OT.runningThread.isAlive()
-%                     pause(0.5)
-%                 end
-%                 OT.isRunning = 0;
-%             end
-%             
-%         end
-        
-%         function runMethDaemonKW(OT,waitFlag,clPointer,methName,varargin)
-%             % Run a method as a daemon using python keyword variables
-%             
-%             % Check if a thread is currently running
-%             if OT.isRunning == 1
-%                 while OT.runningThread.isAlive()
-%                     fprintf('Waiting for OT to finish last command \n');
-%                     pause(0.1)
-%                 end
-%                 
-%                 OT.isRunning = 0;
-%             end
-%             % Start the method running on the thread
-%             OT.runningThread = OT.helper.runDaemonMethodKW(clPointer,methName,varargin{1});
-%             OT.isRunning = 1;
-%             
-% %             OT.pollDaemon;
-%             % if set to wait, poll the thread to see if it is finished. 
-%             if waitFlag == 1
-%                 while OT.runningThread.isAlive()
-%                     pause(0.5)
-%                 end
-%                 OT.isRunning = 0;
-%             end
-%             
-%         end
-%         
-%         function runMethDaemonGen(OT,waitFlag,clPointer,methName,varargin)
-%             % Run a method as a daemon using python keyword variables
-%             
-%             % Check if a thread is currently running
-%             if OT.isRunning == 1
-%                 while OT.runningThread.isAlive()
-%                     fprintf('Waiting for OT to finish last command \n');
-%                     pause(0.1)
-%                 end
-%                 
-%                 OT.isRunning = 0;
-%             end
-%             % Start the method running on the thread
-%             OT.runningThread = OT.helper.runDaemonMethodGen(clPointer,methName,varargin{:});
-%             OT.isRunning = 1;
-%             
-% %             OT.pollDaemon;
-%             % if set to wait, poll the thread to see if it is finished. 
-%             if waitFlag == 1
-%                 while OT.runningThread.isAlive()
-%                     pause(0.5)
-%                 end
-%                 OT.isRunning = 0;
-%             end
-%             
-%         end
-        
-%         function pollDaemon(OT)
-%             % Periodically poll the thread to see if the daemon is done
-%             % without blocking the main thread
-%             
-%             start(timer('StartDelay',0.5,...
-%                             'TimerFcn',@(~,~) OT.checkDaemon,...
-%                             'Name','checkDaemon'));
-%         end
-%         function checkDaemon(OT)
-%             % Simple method to check the status of the thread
-%             
-%             if OT.isRunning == 1
-%                 if OT.runningThread.isAlive()==1
-%                     OT.pollDaemon;                    
-%                 else
-%                     OT.isRunning = 0;
-%                 end 
-%             end            
-%         end
-        
+
         %% Movement methods
         
         function move_head(OT,varPyargsIn)
@@ -260,7 +198,12 @@ classdef OpenTrons < dynamicprops
             end
             
             % run move_head as a daemon
-            OT.runMethDaemon(1,OT.robot,'move_head',varPyargsIn);
+            if OT.check_conn==1
+                OT.runMethDaemon(1,OT.robot,'move_head',varPyargsIn);
+            else
+                warningdlg('Robot not connected, connect to robot first');
+            end
+            
             
         end
         
@@ -271,10 +214,18 @@ classdef OpenTrons < dynamicprops
                 % Home all axes by passing nothing in
                 
                 % run home as a daemon
-                OT.runMethDaemon(1,OT.robot,'home');
+                if OT.check_conn==1
+                    OT.runMethDaemon(1,OT.robot,'home');
+                else
+                    warningdlg('Robot not connected, connect to robot first');
+                end
             else
                 % run home as a daemon
-                OT.runMethDaemon(1,OT.robot,'home',axis);
+                if OT.check_conn==1
+                    OT.runMethDaemon(1,OT.robot,'home',axis);
+                else
+                    warningdlg('Robot not connected, connect to robot first');
+                end
             end
         end
         
@@ -302,7 +253,11 @@ classdef OpenTrons < dynamicprops
             assert(strcmp(arg.strategy,'arc') || strcmp(arg.strategy,'direct'),...
                 'move_to strategy must be either ''arc'' or ''direct'' ');
             
-            OT.runMethDaemon(1,OT.robot,'move_to',loc,pyargs('instrument',arg.instrument,'strategy',arg.strategy));
+            if OT.check_conn==1
+               OT.runMethDaemon(1,OT.robot,'move_to',loc,pyargs('instrument',arg.instrument,'strategy',arg.strategy));
+            else
+                warningdlg('Robot not connected, connect to robot first');
+            end
             
         end
         
@@ -324,7 +279,12 @@ classdef OpenTrons < dynamicprops
             end
             
             % run move_head as a daemon
-            OT.runMethDaemon(1,OT.robot,'move_plunger',varPyargsIn);
+            if OT.check_conn==1
+               OT.runMethDaemon(1,OT.robot,'move_plunger',varPyargsIn);
+            else
+                warningdlg('Robot not connected, connect to robot first');
+            end
+            
         end
         %% Container Methods
         

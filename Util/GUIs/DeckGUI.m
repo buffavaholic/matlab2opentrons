@@ -288,6 +288,25 @@ allCont = struct(handles.deck.containers);
 contNames = fieldnames(allCont);
 tableCell = {};
 tableCellCounter = 0;
+
+if ~isempty(handles.OT.axisA)
+    NextTipWellA = handles.OT.axisA.pypette.get_next_tip;
+    if ~isempty(NextTipWellA)
+        handles.OT.axisA.pypette.start_at_tip(NextTipWellA);
+    end
+else
+    NextTipWellA = [];
+end
+
+if ~isempty(handles.OT.axisB)
+    NextTipWellB = handles.OT.axisB.pypette.get_next_tip;
+    if ~isempty(NextTipWellB)
+        handles.OT.axisB.pypette.start_at_tip(NextTipWellB);
+    end
+else
+    NextTipWellB = [];
+end
+
 for k = 1:length(contNames)
 %     tic
     cont = allCont.(contNames{k});
@@ -315,8 +334,8 @@ for k = 1:length(contNames)
             r = handles.slWidth/4;
         end
         
-        relCoords = well.coordinates(cont).to_tuple;
-        
+%         relCoords = well.coordinates(cont).to_tuple;
+        relCoords = well.from_center(pyargs('x',0,'y',0,'z',-1,'reference',cont)).to_tuple;
         contSubProp.name{m} = contChilNames{m};
         contSubProp.x(m) = double(relCoords.x);
         contSubProp.y(m) = double(relCoords.y);
@@ -376,6 +395,24 @@ for k = 1:length(contNames)
         plotCell = {contChilNames{m},'well',{contChil.(contChilNames{m})},contNames{k},'container',{cont},[contSubProp.x(m),contSubProp.y(m),contSubProp.z(m)],[xunit',yunit'],h};
         tableCellCounter = tableCellCounter +1;
         tableCell(tableCellCounter,:) = plotCell;
+        
+        if ~isempty(NextTipWellA)
+            if NextTipWellA == contChil.(contChilNames{m})
+                hpt = plot(handles.deckAxis,contSubProp.centered_x(m), contSubProp.centered_y(m),'*r');
+                plotCell = {'startTipA','tip',{},contChilNames{m},'well',{contChil.(contChilNames{m})},[contSubProp.centered_x(m),contSubProp.centered_y(m),0],[contSubProp.centered_x(m),contSubProp.centered_y(m)],hpt};
+                tableCellCounter = tableCellCounter +1;
+                tableCell(tableCellCounter,:) = plotCell;
+            end
+        end
+        
+        if ~isempty(NextTipWellB)
+            if NextTipWellB == contChil.(contChilNames{m})
+                hpt = plot(handles.deckAxis,contSubProp.centered_x(m), contSubProp.centered_y(m),'*b');
+                plotCell = {'startTipB','tip',{},contChilNames{m},'well',{contChil.(contChilNames{m})},[contSubProp.centered_x(m),contSubProp.centered_y(m),0],[contSubProp.centered_x(m),contSubProp.centered_y(m)],hpt};
+                tableCellCounter = tableCellCounter +1;
+                tableCell(tableCellCounter,:) = plotCell;
+            end
+        end
 %         tableRow = cell2table(plotCell,'VariableNames',handles.tableVarNames);
 %         handles.deckTable = [handles.deckTable;tableRow];
 %         toc
@@ -383,8 +420,10 @@ for k = 1:length(contNames)
     toc
     
 end
-tableRow = cell2table(tableCell,'VariableNames',handles.tableVarNames);
-handles.deckTable = [handles.deckTable;tableRow];
+if ~isempty(tableCell)
+    tableRow = cell2table(tableCell,'VariableNames',handles.tableVarNames);
+    handles.deckTable = [handles.deckTable;tableRow];
+end
 
 handlesOut = handles;
 
@@ -494,6 +533,73 @@ function move2selButton_Callback(hObject, eventdata, handles)
 % hObject    handle to move2selButton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
+if ~isfield(handles,'selInd')
+    errordlg('You must select a valid position first using the ''Select Position'' button first');
+else
+    if isempty(handles.selInd)
+        errordlg('You must select a valid position first using the ''Select Position'' button first');
+    else
+        ind = handles.selInd;
+        % Get what type was selected from the deckTable
+        selType = handles.deckTable.type(ind);
+        
+        if selType == 'well'
+            % Get the container pointer;
+            contPointer = handles.deckTable.parPointer{ind};
+            % Get the well name
+            wellName = handles.deckTable.name{ind};
+            wellPointer = handles.deckTable.selfPointer{ind};
+            wellPointer = wellPointer{:};
+            % Get which pipette is selected
+            handles = updatePipetteList(handles);
+
+            if get(handles.rightPipButton,'Value')
+                axisID = 'axisA';
+%                 robotAxis = 'a';
+            else
+                axisID = 'axisB';
+                robotAxis = 'b';
+            end
+            
+%             plunger position string (for easier replication)
+%             plungerPosStr = 'bottom';
+            
+            contents = cellstr(get(handles.zPosList,'String')) ;
+            strLoc = contents{get(handles.zPosList,'Value')} ;
+            % Check if pipette is set
+%             if isfield(handles.(axisID),'pointer')
+            if ~isempty(handles.OT.(axisID))
+                
+                switch strLoc
+                    case 'Bottom'
+                        % move to bottom of selected well
+                        handles.OT.(axisID).move_to(wellPointer.bottom,'queuing','Now');
+                    case 'Top'
+                        handles.OT.(axisID).move_to(py.tuple({wellPointer,wellPointer.from_center(pyargs('x',0,'y',0,'z',1))}),'queuing','Now');
+                    case 'Center'
+                        handles.OT.(axisID).move_to(py.tuple({wellPointer,wellPointer.from_center(pyargs('x',0,'y',0,'z',0))}),'queuing','Now');
+                end
+%                 % Check if the calibrated position is numeric 
+%                 if isnumeric(handles.(axisID).pos.(plungerPosStr))
+%                     % Passed checks move plunger position
+%                     posLoc = handles.(axisID).pos.(plungerPosStr);
+%                     handles.OT.move_plunger(pyargs(robotAxis,posLoc));    
+%                 else
+%                     errordlg('Plunger position for this location and pipette need to be calibrated first.');
+%                 end
+            else
+                % if a pipette isnt set then cant move it.
+                errordlg('Cannot move position for selected axis as a pipette has not been added to that position. Either select correct axis or add pipette to slot and then calibrate');
+            end
+
+        else
+            errordlg('Cannot calibrate deck slot, please select well')
+        end
+        
+    end
+    
+end
 
 
 % Check for and update pointers to connected pipettes
