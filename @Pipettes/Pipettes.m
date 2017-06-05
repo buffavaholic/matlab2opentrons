@@ -882,6 +882,19 @@ classdef Pipettes < handle
             if isempty(vol)
                 vol = py.None;
             end
+            
+            % Check if the location is None, a well or a specific location
+            locClass = class(arg.loc);
+            switch locClass
+                case 'py.opentrons.containers.placeable.Well'
+                    % Fed in a well, so can just use that directly
+                    wellBottom = arg.loc.bottom();
+                case 'py.tuple'
+                    % This is feeding in a specific location so just use
+                    % what is fed in
+                    wellBottom = arg.loc;
+            end
+                    
                        
             % Confirm queuing is in the correct format
             Pip.checkQueuingInput(arg.queuing);
@@ -896,7 +909,7 @@ classdef Pipettes < handle
                     if Pip.check_conn==1
 %                         Pip.parent.runMethDaemon(1,Pip.pypette,'mix',reps,vol,arg.loc,arg.rate,false);
                         if arg.loc~=py.None
-                            Pip.move_to(arg.Loc,'strategy',arg.strategy,'queuing','Now');
+                            Pip.move_to(wellBottom,'strategy',arg.strategy,'queuing','Now');
                         end
 
                         for k = 1:reps
@@ -910,7 +923,7 @@ classdef Pipettes < handle
                     % Add to the OT queue
 %                     Pip.pypette.mix(reps,vol,arg.loc,arg.rate,true);
                     if arg.loc~=py.None
-                        Pip.move_to(arg.Loc,'strategy',arg.strategy,'queuing','OTqueue');
+                        Pip.move_to(wellBottom,'strategy',arg.strategy,'queuing','OTqueue');
                     end
 
                     for k = 1:reps
@@ -1043,6 +1056,118 @@ classdef Pipettes < handle
                         error('Local queue not initalized properly or supplied')
                     end
             end
+            
+        end
+        
+        %% Lumped methods for transfering to the scope
+        
+        function transfer_prep(Pip,vol,from_loc,to_loc,varargin)
+            
+            % Parse optional variables 
+            arg.rate = 1;
+            arg.queuing = 'OTqueue';
+            arg.locqueue = OTexQueue;
+            arg.localpos = -1; % Where to add this into the comd list
+            arg.newtip = 1; %specify if a new tip should be picked up
+            arg.tiploc = py.None; %to specify which tip to pick up if not using tip tracking
+            
+            arg = parseVarargin(varargin,arg);
+                        
+            % If an empty place holder is passed in for vol set to
+            % max_volume            
+            if isempty(vol)
+                vol = py.None;
+            end
+            
+            % Check if the to location is a well or a specific location
+            locClass = class(to_loc);
+            switch locClass
+                case 'py.opentrons.containers.placeable.Well'
+                    % Fed in a well, so prep to move to top of well
+                    to_loc = to_loc.top();
+                case 'py.tuple'
+                    % This is feeding in a specific location so just use
+                    % what is fed in
+                    splitIn = cell(to_loc);
+                    wellIn = splitIn{1};
+                    if strcmp(class(wellIn),'py.opentrons.containers.placeable.Well')
+                        to_loc = wellIn.top();
+                    else
+                        error('Could not get well out of to_loc input')
+                    end
+            end
+                       
+            % Confirm queuing is in the correct format
+            Pip.checkQueuingInput(arg.queuing);
+            
+            if arg.newtip == 1            
+                Pip.pick_up_tip('loc',arg.tiploc,'queuing',arg.queuing,'locqueue',arg.locqueue,'localpos',arg.localpos)
+            end
+            
+            Pip.aspirate(vol,from_loc,'rate',arg.rate,'queuing',arg.queuing,'locqueue',arg.locqueue,'localpos',arg.localpos)
+            Pip.move_to(to_loc,'queuing',arg.queuing,'locqueue',arg.locqueue,'localpos',arg.localpos)
+        end
+        
+        function transfer_disp(Pip,loc,varargin)
+            
+            % Parse optional variables
+            arg.vol = 0; %volume to be dispensed if. py.None is used it should default to the current volume
+            arg.rate = 1;
+            arg.queuing = 'OTqueue';
+            arg.locqueue = OTexQueue;
+            arg.localpos = -1; % Where to add this into the comd list
+            arg.mixreps = 0; %number of mix repettions. default is no mixing
+            arg.mixvol = 0; % volume for mixing, if none supplied use same amount as volume dispensed
+            arg.strategy = 'direct'; % assume that since you are mixing in the same well as dispensing you can do direct.
+            arg.blowout = 0; % flag to do blowout after dispense and mix
+            arg.touchtip = 0; % flag to touch tip after dispense, mix and blowout (if used)
+            
+            arg = parseVarargin(varargin,arg);
+            
+            % if no volume is set pass in py.None
+            if arg.vol == 0
+                arg.vol = py.None;
+            end
+            if arg.mixvol == 0
+                arg.mixvol = py.None;
+            end
+            % Check that if the volume was set but mixvol was not that it
+            % uses the value used for the vol
+            
+            if arg.vol ~= py.None && arg.mixvol == py.None
+                arg.mixvol = arg.vol;
+            end
+            
+            % Check if the to location is a well or a specific location
+            locClass = class(loc);
+            switch locClass
+                case 'py.opentrons.containers.placeable.Well'
+                    % Fed in a well, just save that as the well
+                    locWell = loc;
+                case 'py.tuple'
+                    % This is feeding in a specific location so need to
+                    % extract the well
+                    splitIn = cell(loc);
+                    wellIn = splitIn{1};
+                    if strcmp(class(wellIn),'py.opentrons.containers.placeable.Well')
+                        locWell = wellIn;
+                    else
+                        error('Could not get well out of loc input')
+                    end
+            end
+            
+            Pip.dispense(arg.vol,loc,'rate',arg.rate,'queuing',arg.queuing,'locqueue',arg.locqueue,'localpos',arg.localpos)
+            if arg.mixreps > 0 
+                Pip.mix(arg.mixreps,arg.mixvol,loc,'strategy',arg.strategy,'rate',arg.rate,'queuing',arg.queuing,'locqueue',arg.locqueue,'localpos',arg.localpos);
+            end
+            if arg.blowout == 1
+                Pip.blow_out('queuing',arg.queuing,'locqueue',arg.locqueue,'localpos',arg.localpos);
+            end
+            if arg.touchtip == 1
+                Pip.touc_tip('queuing',arg.queuing,'locqueue',arg.locqueue,'localpos',arg.localpos);
+            end
+            
+            Pip.move_to(locWell.top(),'queuing',arg.queuing,'locqueue',arg.locqueue,'localpos',arg.localpos)
             
         end
         

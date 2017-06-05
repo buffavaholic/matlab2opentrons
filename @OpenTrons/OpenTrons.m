@@ -534,9 +534,7 @@ classdef OpenTrons < dynamicprops
             OT.DynCont.stage_axisOrder = arg.stage_axisOrder;       % Stage order of axis
         end
         
-        %% Lumped methods for delivery to microscope
-        
-        
+       
         %% Internal Methods
         
         function is_a_GO = checkRefName(OT,refName)
