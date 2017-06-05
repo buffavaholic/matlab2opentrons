@@ -12,6 +12,9 @@ classdef OTexQueue < handle
         
         MDdescr = '';
         
+        waitToCont = 1;
+        
+        numTipsPickedUp = [0,0];
     end
     
     methods
@@ -48,6 +51,27 @@ classdef OTexQueue < handle
                 OTpointer = source.parent;
                 % reference name for pipette in OT
                 pipName = source.name;
+                % check if pick_up_tip or return_tip is the method
+                changeTipNum = 0;
+                if strcmp(meth,'pick_up_tip')==1
+                    changeTipNum = 1;
+                elseif strcmp(meth,'return_tip')==1
+                    changeTipNum = -1;
+                end
+                
+                if changeTipNum ~= 0
+                    % Pipette axis
+                    pipAxis = source.axis;
+                    
+                    if strcmp(pipAxis,'a')==1
+                        exQ.numTipsPickedUp(1) = exQ.numTipsPickedUp(1) + changeTipNum;
+                    elseif strcmp(pipAxis,'b')==1
+                        exQ.numTipsPickedUp(2) = exQ.numTipsPickedUp(2) + changeTipNum;
+                    else
+                        error('Pipette axis does not make sense')
+                    end
+                end
+                
                 
                 mainSource = OTpointer.(pipName);
             else

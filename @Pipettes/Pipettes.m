@@ -26,6 +26,9 @@ classdef Pipettes < handle
         %% Python Pipette pointer
         
         pypette; % Pointer to the python pipette object. 
+        
+        %% tip tracking
+        currTip; % Holds the position of the next(current tip) in the tiprack because OT does not keep track between runs
 
     end
     
@@ -535,6 +538,16 @@ classdef Pipettes < handle
             
         end
         
+        function start_at_tip(Pip,tipRack,well)
+            % Method to specify what tip of the tip rack to start at. 
+            
+            if ischar(well)
+                Pip.pypette.start_at_tip(Pip.parent.helper.get_well(tipRack,well));
+            elseif isnumeric(well)
+                Pip.pypette.start_at_tip(Pip.parent.helper.get_well(tipRack,uint16(well)));
+            end
+            
+        end
         %% General movement methods
         
         function boolOut = check_conn(Pip)
@@ -834,6 +847,7 @@ classdef Pipettes < handle
             arg.queuing = 'OTqueue';
             arg.locqueue = OTexQueue;
             arg.localpos = -1; % Where to add this into the comd list
+            arg.strategy = 'arc';
             
             arg = parseVarargin(varargin,arg);
             
@@ -871,6 +885,7 @@ classdef Pipettes < handle
                        
             % Confirm queuing is in the correct format
             Pip.checkQueuingInput(arg.queuing);
+
             
             % Execute python method 'mix' based on queue option
             switch arg.queuing
@@ -879,18 +894,34 @@ classdef Pipettes < handle
 %                     Pip.pypette.mix(reps,vol,arg.loc,arg.rate,false);
                     % Run as daemon
                     if Pip.check_conn==1
-                        Pip.parent.runMethDaemon(1,Pip.pypette,'mix',reps,vol,arg.loc,arg.rate,false);
+%                         Pip.parent.runMethDaemon(1,Pip.pypette,'mix',reps,vol,arg.loc,arg.rate,false);
+                        if arg.loc~=py.None
+                            Pip.move_to(arg.Loc,'strategy',arg.strategy,'queuing','Now');
+                        end
+
+                        for k = 1:reps
+                            Pip.aspirate(vol,[],'rate',arg.rate,'queuing','Now')
+                            Pip.dispense(vol,[],'rate',arg.rate,'queuing','Now')
+                        end
                     else
                         warningdlg('Robot not connected, connect to robot first');
                     end
                 case 'OTqueue'
                     % Add to the OT queue
-                    Pip.pypette.mix(reps,vol,arg.loc,arg.rate,true);
+%                     Pip.pypette.mix(reps,vol,arg.loc,arg.rate,true);
+                    if arg.loc~=py.None
+                        Pip.move_to(arg.Loc,'strategy',arg.strategy,'queuing','OTqueue');
+                    end
+
+                    for k = 1:reps
+                        Pip.aspirate(vol,[],'rate',arg.rate,'queuing','OTqueue')
+                        Pip.dispense(vol,[],'rate',arg.rate,'queuing','OTqueue')
+                    end
                 case 'ExtQueue'
                     % Send to external queue
                     if arg.locqueue.checkLocQueue
                         % Appropriate parameters are set so send to queue
-                        arg.locqueue.queueMeth(Pip,'mix',{reps,vol,'loc',arg.loc,'rate',arg.rate,'queuing','OTqueue'},'mix ?? uL in ??','localpos',arg.localpos);
+                        arg.locqueue.queueMeth(Pip,'mix',{reps,vol,'loc',arg.loc,'rate',arg.rate,'queuing','OTqueue','strategy',arg.strategy},'mix ?? uL in ??','localpos',arg.localpos);
 
                     else
                         % Queue is either not defined or parameters not set

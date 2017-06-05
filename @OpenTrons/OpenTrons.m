@@ -85,12 +85,12 @@ classdef OpenTrons < dynamicprops
             
             % Open up the OT GUI
             if startGUI == 1
-                OT.controlGui = OTgui(OT);
+                OT.controlGui = OTcontrol(OT);
                 OT.stopGui = EmergStop(OT);
                 WinOnTop(OT.stopGui,true); % Make the emergency stop button always be on top
                 
-                % Open the deck gui
-                DeckGUI(OT);
+%                 % Open the deck gui
+%                 DeckGUI(OT);
             end
             % Finally, move back to the directory origionally started in
             cd(curDir);
@@ -466,15 +466,47 @@ classdef OpenTrons < dynamicprops
             end
             
 %             OT.robot.run()
+            msgOnce = 0;
             if OT.isRunning == 1
                 while OT.runningThread.isAlive()
-                    fprintf('Waiting for OT to finish last command \n');
+                    if msgOnce == 0
+                        fprintf('Waiting for OT to finish last command \n');
+                        msgOnce = 1;
+                    end
                     pause(0.1)
                 end
+                fprintf('OT finished last command \n');
                 
             end 
             OT.runningThread = OT.helper.runDaemonRun(OT.robot);
             OT.isRunning = 1;
+            % I don't think returning the tips will work between runs so
+            % just force the number of tips used to increase
+            % This is a hacky way of foring the tip incrementer to
+            % increase, I hope they change how tips are tracked in the
+            % future.
+            chgTips = queue.numTipsPickedUp;
+            if chgTips(1)>0
+                for k = 1:chgTips(1)
+                    OT.axisA.pypette.get_next_tip
+                end
+                nextWell = OT.axisA.pypette.get_next_tip;
+                OT.axisA.pypette.start_at_tip(nextWell);
+            end
+            if chgTips(2)>0
+                for k = 1:chgTips(2)
+                    OT.axisB.pypette.get_next_tip
+                end
+                nextWell = OT.axisB.pypette.get_next_tip;
+                OT.axisB.pypette.start_at_tip(nextWell);
+            end
+            if queue.waitToCont == 1
+                while OT.runningThread.isAlive()
+                    fprintf('Waiting for OT to finish last command \n');
+                    pause(0.1)
+                end
+            end
+            
 %             OT.runPar();
             
         end
@@ -501,6 +533,9 @@ classdef OpenTrons < dynamicprops
             OT.DynCont.stage_dir = arg.stage_dir;       % Stage axis directions
             OT.DynCont.stage_axisOrder = arg.stage_axisOrder;       % Stage order of axis
         end
+        
+        %% Lumped methods for delivery to microscope
+        
         
         %% Internal Methods
         
