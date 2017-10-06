@@ -433,6 +433,7 @@ classdef Pipettes < handle
             arg.queuing = 'OTqueue';
             arg.locqueue = OTexQueue;
             arg.localpos = -1; % Where to add this into the comd list
+            arg.presses = 3;
             
             arg = parseVarargin(varargin,arg);            
              
@@ -444,16 +445,16 @@ classdef Pipettes < handle
                     % Run the pick up tip now
 %                     Pip.pypette.pick_up_tip(arg.loc,false);
                     % Run as daemon
-                    Pip.parent.runMethDaemon(1,Pip.pypette,'pick_up_tip',arg.loc,false);
+                    Pip.parent.runMethDaemon(1,Pip.pypette,'pick_up_tip',pyargs('location',arg.loc,'presses',arg.presses,'enqueue',false));
                 case 'OTqueue'
                     % Add to the OT queue
-                    Pip.pypette.pick_up_tip(arg.loc);
+                    Pip.pypette.pick_up_tip(arg.loc,arg.presses);
                 case 'ExtQueue'
                     % Send to external queue
                     
                     if arg.locqueue.checkLocQueue
                         % Appropriate parameters are set so send to queue
-                        arg.locqueue.queueMeth(Pip,'pick_up_tip',{'loc',arg.loc,'queuing','OTqueue'},'Pick up tip at??','localpos',arg.localpos);
+                        arg.locqueue.queueMeth(Pip,'pick_up_tip',{'loc',arg.loc,'presses',arg.presses,'queuing','OTqueue'},'Pick up tip at??','localpos',arg.localpos);
                         
                     else
                         % Queue is either not defined or parameters not set
@@ -473,6 +474,7 @@ classdef Pipettes < handle
             arg.locqueue = OTexQueue;
             arg.localpos = -1; % Where to add this into the comd list
             
+            
             arg = parseVarargin(varargin,arg);
          
             % Confirm queuing is in the correct format
@@ -483,7 +485,7 @@ classdef Pipettes < handle
                     % Run the drop tip now
 %                     Pip.pypette.drop_tip(arg.loc,false);
                     % Run as daemon
-                    Pip.parent.runMethDaemon(1,Pip.pypette,'drop_tip',arg.loc,false);
+                    Pip.parent.runMethDaemon(1,Pip.pypette,'drop_tip',pyargs('location',arg.loc,'enqueue',false));
                 case 'OTqueue'
                     % Add to the OT queue
                     Pip.pypette.drop_tip(arg.loc);
@@ -520,7 +522,7 @@ classdef Pipettes < handle
                     % Run the drop tip now
 %                     Pip.pypette.return_tip(false);
                     % Run as daemon
-                    Pip.parent.runMethDaemon(1,Pip.pypette,'return_tip',false);
+                    Pip.parent.runMethDaemon(1,Pip.pypette,'return_tip',pyargs('enqueue',false));
                 case 'OTqueue'
                     % Add to the OT queue
                     Pip.pypette.return_tip();
@@ -589,6 +591,46 @@ classdef Pipettes < handle
                      if arg.locqueue.checkLocQueue
                         % Appropriate parameters are set so send to queue
                         arg.locqueue.queueMeth(Pip,'home',{'queuing','OTqueue'},'home axis ??','localpos',arg.localpos);
+                        
+                    else
+                        % Queue is either not defined or parameters not set
+                        error('Local queue not initalized properly or supplied')
+                    end
+            end
+        end
+        
+        function homeAll(Pip,varargin)
+            % Home all axes either right now or during a
+            % protocol
+            
+            % Parse optional variables
+            arg.queuing = 'OTqueue';
+            arg.locqueue = OTexQueue;
+            arg.localpos = -1; % Where to add this into the comd list
+            
+            arg = parseVarargin(varargin,arg);
+            
+            % Confirm queuing is in the correct format
+            Pip.checkQueuingInput(arg.queuing);
+            
+            switch arg.queuing
+                case 'Now'
+                    % Home now
+                    % Run as daemon
+                    if Pip.check_conn==1
+                        Pip.parent.runMethDaemon(1,Pip.parent.robot,'home',false);
+                    else
+                        warningdlg('Robot not connected, connect to robot first');
+                    end
+                case 'OTqueue'
+                    % Add home to the OT queue
+                    Pip.parent.robot.home();
+                case 'ExtQueue'
+                    % Send to external queue
+                    
+                     if arg.locqueue.checkLocQueue
+                        % Appropriate parameters are set so send to queue
+                        arg.locqueue.queueMeth(Pip,'homeAll',{'queuing','OTqueue'},'home all axes','localpos',arg.localpos);
                         
                     else
                         % Queue is either not defined or parameters not set

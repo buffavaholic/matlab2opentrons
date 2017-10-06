@@ -1324,7 +1324,9 @@ end
                 % Get the well name
                 wellName = handles.deckTable.name{ind};
                 wellPointer = handles.deckTable.selfPointer{ind};
-                wellPointer = wellPointer{:};
+                if iscell(wellPointer)
+                    wellPointer = wellPointer{:};
+                end
                 % Get which pipette is selected
                 updatePipetteList();
 
@@ -1348,7 +1350,7 @@ end
                     switch strLoc
                         case 'Bottom'
                             % move to bottom of selected well
-                            handles.OT.(axisID).move_to(wellPointer.bottom,'queuing','Now');
+                            handles.OT.(axisID).move_to(wellPointer.bottom(),'queuing','Now');
                         case 'Top'
                             handles.OT.(axisID).move_to(py.tuple({wellPointer,wellPointer.from_center(pyargs('x',0,'y',0,'z',1))}),'queuing','Now');
                         case 'Center'

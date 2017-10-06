@@ -52,4 +52,12 @@ def runDaemonMethod(objIn,methIn,*argsIn,**kwargsIn):
 def getVersion():
     
     return opentrons.__version__
+
+def updateMultiChStartRow(pypette,tipbox,tiprow):
+    pypette.start_at_tip(tipbox.rows(tiprow))
+
+def getRow(tipbox,tiprow):
+    r = tipbox.rows(tiprow)
+
+    return r
     
