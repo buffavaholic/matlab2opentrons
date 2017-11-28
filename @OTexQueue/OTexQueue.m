@@ -7,6 +7,7 @@ classdef OTexQueue < handle
         TimePoint
         TimeType ='absolute';
         TimeOrder = -1;
+        QueueIndex;
         
         comd = {}; % Commands Cell list   
         

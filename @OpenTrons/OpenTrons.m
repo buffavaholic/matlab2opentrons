@@ -435,7 +435,7 @@ classdef OpenTrons < dynamicprops
                     extQueue.addToQueue(qGroup.Name,...
                         {qGroup.TimePoint,qGroup.TimeType},...
                         qGroup.TimeOrder,'OTcommand',...
-                        {qGroup},'',OT,'runFromExtQueue',qGroup.MDdescr,0);
+                        {qGroup},'',OT,'runFromExtQueue',qGroup.MDdescr,0,qGroup.QueueIndex);
                 else
                     error('one of the queues in the queue list is not properly set');
                 end
@@ -485,7 +485,7 @@ classdef OpenTrons < dynamicprops
             % This is a hacky way of foring the tip incrementer to
             % increase, I hope they change how tips are tracked in the
             % future.
-            chgTips = queue.numTipsPickedUp;
+            chgTips = queue.numTipsPickedUp
             if chgTips(1)>0
                 for k = 1:chgTips(1)
                     OT.axisA.pypette.get_next_tip
