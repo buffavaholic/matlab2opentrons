@@ -76,6 +76,7 @@ classdef OpenTrons < dynamicprops
             OT.robot = genOT;
             
             % Reset robot
+            OT.robot.disconnect();
             OT.robot.reset();
             cd([OT.libPath,'\Util\pyScripts'])
             
@@ -306,7 +307,7 @@ classdef OpenTrons < dynamicprops
                 try 
                     % Try loading container and assigning it to variable. 
                     propHandle = OT.addprop(contRef);
-                    OT.(contRef) = py.opentrons.containers.load(contName,slot,contRef);
+                    OT.(contRef) = py.opentrons.containers.load(OT.robot,contName,slot,contRef);
                     
                     contHandle = OT.(contRef);
                     [handleRows,~] = size(OT.contHandles);
@@ -444,7 +445,7 @@ classdef OpenTrons < dynamicprops
         
         function runFromExtQueue(OT,queueCell)
             
-            OT.robot.clear_commands();
+%             OT.robot.clear_commands();
             
             % Check for dynamic containers and update calibration
             if ~isempty(OT.DynCont.aCalibXY)
@@ -458,13 +459,16 @@ classdef OpenTrons < dynamicprops
             queue = queueCell{:};
             commandCell =queue.comd;
             
+            groupList = {};
             for k=1:length(commandCell(:,1))
                 runner = commandCell{k,1};
                 vars = commandCell{k,3};
+                nextCommandGrp = {};
+                nextCommandGrp = runner.(commandCell{k,2})(vars{:},'queuing','OTqueue');
                 
-                runner.(commandCell{k,2})(vars{:});
+                groupList{k} = nextCommandGrp;
             end
-            
+            groupListPy = py.list(groupList);
 %             OT.robot.run()
             msgOnce = 0;
             if OT.isRunning == 1
@@ -478,28 +482,29 @@ classdef OpenTrons < dynamicprops
                 fprintf('OT finished last command \n');
                 
             end 
-            OT.runningThread = OT.helper.runDaemonRun(OT.robot);
+%             OT.runningThread = OT.helper.runDaemonRun(OT.robot);
+            OT.runningThread = OT.helper.runDaemonGroup(groupListPy);
             OT.isRunning = 1;
             % I don't think returning the tips will work between runs so
             % just force the number of tips used to increase
             % This is a hacky way of foring the tip incrementer to
             % increase, I hope they change how tips are tracked in the
             % future.
-            chgTips = queue.numTipsPickedUp
-            if chgTips(1)>0
-                for k = 1:chgTips(1)
-                    OT.axisA.pypette.get_next_tip
-                end
-                nextWell = OT.axisA.pypette.get_next_tip;
-                OT.axisA.pypette.start_at_tip(nextWell);
-            end
-            if chgTips(2)>0
-                for k = 1:chgTips(2)
-                    OT.axisB.pypette.get_next_tip
-                end
-                nextWell = OT.axisB.pypette.get_next_tip;
-                OT.axisB.pypette.start_at_tip(nextWell);
-            end
+%             chgTips = queue.numTipsPickedUp
+%             if chgTips(1)>0
+%                 for k = 1:chgTips(1)
+%                     OT.axisA.pypette.get_next_tip
+%                 end
+%                 nextWell = OT.axisA.pypette.get_next_tip;
+%                 OT.axisA.pypette.start_at_tip(nextWell);
+%             end
+%             if chgTips(2)>0
+%                 for k = 1:chgTips(2)
+%                     OT.axisB.pypette.get_next_tip
+%                 end
+%                 nextWell = OT.axisB.pypette.get_next_tip;
+%                 OT.axisB.pypette.start_at_tip(nextWell);
+%             end
             if queue.waitToCont == 1
                 while OT.runningThread.isAlive()
                     fprintf('Waiting for OT to finish last command \n');

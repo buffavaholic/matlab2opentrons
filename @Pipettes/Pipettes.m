@@ -1,8 +1,8 @@
 classdef Pipettes < handle
-    %PIPETTES MATLAB class to convert to OT Python pipette class 
+    %PIPETTES MATLAB class to convert to OT Python pipette class
     %   The PIPETTES class handles the MATLAB facing interactions with the
     %   OpenTrons pipette objects so the MATLAB user can use MATLAB
-    %   notation to operate the Python object easier. 
+    %   notation to operate the Python object easier.
     
     properties
         %% OT information
@@ -13,23 +13,23 @@ classdef Pipettes < handle
         
         %% OT Python Pipette parameters
         
-        axis; % (str) Axis of the pipettes's actuator on the Opentrons robot('a' or 'b') 
-        name; % (str) Unique name for saving it's calibrations. 
-        channels = 1; % (int) Number of pipette channels 
-        min_volume = 0; % (int) Smallest recommended volume in uL 
-        max_volume; % (int) Largest volume in uL 
-        trash_container ; % (Container) Sets the default location for 'drop_tip()' 
+        axis; % (str) Axis of the pipettes's actuator on the Opentrons robot('a' or 'b')
+        name; % (str) Unique name for saving it's calibrations.
+        channels = 1; % (int) Number of pipette channels
+        min_volume = 0; % (int) Smallest recommended volume in uL
+        max_volume; % (int) Largest volume in uL
+        trash_container ; % (Container) Sets the default location for 'drop_tip()'
         tip_racks; % (cell array of Containers) A list of containers for this Pipette to track tips when calling 'pick_up_tip()'
         aspirate_speed = 300; % (int) The speed (in mm/minute) the plunger will move while aspirating
         dispense_speed = 500; % (int) The speed (in mm/minute) the plunger will move while dispensing
         
         %% Python Pipette pointer
         
-        pypette; % Pointer to the python pipette object. 
+        pypette; % Pointer to the python pipette object.
         
         %% tip tracking
         currTip; % Holds the position of the next(current tip) in the tiprack because OT does not keep track between runs
-
+        
     end
     
     %% Helper functions
@@ -43,7 +43,7 @@ classdef Pipettes < handle
                 'queuing must be either ''Now'', ''OTqueue'' or ''ExtQueue'' ');
         end
     end
-   
+    
     methods
         
         %% Constructor
@@ -69,13 +69,13 @@ classdef Pipettes < handle
             % Get File Path
             getFileName = mfilename('fullpath');
             Pip.classPath = fileparts(getFileName);
-            Pip.libPath = OT.libPath; 
+            Pip.libPath = OT.libPath;
             
-                      
+            
             % Parse optional variables
-            arg.channels = Pip.channels; % (int) Number of pipette channels 
-            arg.min_volume = Pip.min_volume; % (int) Smallest recommended volume in uL             
-            arg.trash_container = []; % (Container) Sets the default location for 'drop_tip()' 
+            arg.channels = Pip.channels; % (int) Number of pipette channels
+            arg.min_volume = Pip.min_volume; % (int) Smallest recommended volume in uL
+            arg.trash_container = []; % (Container) Sets the default location for 'drop_tip()'
             arg.tip_racks = {}; % (cell array of Containers) A list of containers for this Pipette to track tips when calling 'pick_up_tip()'
             arg.aspirate_speed = Pip.aspirate_speed; % (int) The speed (in mm/minute) the plunger will move while aspirating
             arg.dispense_speed = Pip.dispense_speed; % (int) The speed (in mm/minute) the plunger will move while dispensing
@@ -85,31 +85,31 @@ classdef Pipettes < handle
             
             % Initalize the pipette in Python
             
-            Pip.pypette = py.opentrons.instruments.Pipette(pyargs('axis',axis,...
-                            'name',pipRef,...
-                            'channels',int16(arg.channels),...
-                            'min_volume',int16(arg.min_volume),...
-                            'max_volume',int16(max_vol),...
-                            'trash_container',arg.trash_container,...
-                            'tip_racks',py.list(arg.tip_racks),...
-                            'aspirate_speed',int16(arg.aspirate_speed),...
-                            'dispense_speed',int16(arg.dispense_speed)));
+            Pip.pypette = py.opentrons.instruments.Pipette(OT.robot,pyargs('axis',axis,...
+                'name',pipRef,...
+                'channels',int16(arg.channels),...
+                'min_volume',int16(arg.min_volume),...
+                'max_volume',int16(max_vol),...
+                'trash_container',arg.trash_container,...
+                'tip_racks',py.list(arg.tip_racks),...
+                'aspirate_speed',int16(arg.aspirate_speed),...
+                'dispense_speed',int16(arg.dispense_speed)));
             
-            % Save required variables 
-            Pip.axis = axis; % (str) Axis of the pipettes's actuator on the Opentrons robot('a' or 'b') 
-            Pip.name = pipRef; % (str) Unique name for saving it's calibrations. 
+            % Save required variables
+            Pip.axis = axis; % (str) Axis of the pipettes's actuator on the Opentrons robot('a' or 'b')
+            Pip.name = pipRef; % (str) Unique name for saving it's calibrations.
             Pip.max_volume = max_vol; % (int) Largest volume in uL
             
             % Save rest of Pipette properties after optional var have been
             % parsed
-            Pip.channels = arg.channels; % (int) Number of pipette channels 
-            Pip.min_volume = arg.min_volume; % (int) Smallest recommended volume in uL             
-            Pip.trash_container = arg.trash_container; % (Container) Sets the default location for 'drop_tip()' 
+            Pip.channels = arg.channels; % (int) Number of pipette channels
+            Pip.min_volume = arg.min_volume; % (int) Smallest recommended volume in uL
+            Pip.trash_container = arg.trash_container; % (Container) Sets the default location for 'drop_tip()'
             Pip.tip_racks = arg.tip_racks; % (cell array of Containers) A list of containers for this Pipette to track tips when calling 'pick_up_tip()'
             Pip.aspirate_speed = arg.aspirate_speed; % (int) The speed (in mm/minute) the plunger will move while aspirating
             Pip.dispense_speed = arg.dispense_speed; % (int) The speed (in mm/minute) the plunger will move while dispensing
             
-
+            
             
         end
         
@@ -124,11 +124,11 @@ classdef Pipettes < handle
                 % Confirm the trash container is a container.
                 assert(isa(trashCont,'py.opentrons.containers.placeable.Container'),...
                     'Supplied trash container not a OpenTrons Container (wrong type)');
-
+                
                 try
                     % Add to python object
                     Pip.pypette.trash_container = trashCont;
-
+                    
                     % Add to MATLAB object
                     Pip.trash_container = trashCont;
                 catch ME
@@ -152,27 +152,27 @@ classdef Pipettes < handle
             if isCell == 0
                 % If not a cell, check that it is at least a OT Container
                 assert(isa(tipRacks,'py.opentrons.containers.placeable.Container'),...
-                'Supplied tip rack not a OpenTrons Container (wrong type)');
+                    'Supplied tip rack not a OpenTrons Container (wrong type)');
                 tipRacks = {tipRacks};
-            else 
+            else
                 % Check the contents of the cell array
                 for k = 1:length(tipRacks)
                     assert(isa(tipRacks{k},'py.opentrons.containers.placeable.Container'),...
                         'One of the items in the tip_racks supplied is not a OpenTrons Container (wrong type)');
-                end                
+                end
             end
-           
-           
+            
+            
             try
                 % Add to python object
                 Pip.pypette.tip_racks = py.list(tipRacks);
-
+                
                 % Add to MATLAB object
                 Pip.tip_racks = tipRacks;
             catch ME
                 % Throw Error
                 error('Error adding tip_racks to pipette. Error details: \n %s',ME.message);
-            end            
+            end
             
         end
         
@@ -183,7 +183,7 @@ classdef Pipettes < handle
             %                    tip-rack container to add to list.
             %         pos      - *int* (optional)Position in the tip_racks
             %                    list to add the tipRack to. Default: end
-
+            
             % current number of tip racks
             nTR = length(Pip.tip_racks);
             % if pos is not supplied add to end of list.
@@ -197,14 +197,14 @@ classdef Pipettes < handle
             
             %initalize tipList with current tips
             tipList = Pip.tip_racks;
-            if pos == nTR+1;
+            if pos == nTR+1
                 tipList{pos} = tipRack;
             else
                 tipList = {tipList{1:(pos-1)},tipRack,tipList{pos:end}};
             end
             
             % Update new tip racks list
-            Pip.tip_racks = tipList;           
+            Pip.tip_racks = tipList;
         end
         
         function set.channels(Pip,numChannels)
@@ -213,13 +213,13 @@ classdef Pipettes < handle
             try
                 % Add to python object
                 Pip.pypette.channels = int16(numChannels);
-
+                
                 % Add to MATLAB object
                 Pip.channels = int16(numChannels);
             catch ME
                 % Throw Error
                 error('Error updating pipette channels. Error details: \n %s',ME.message);
-            end       
+            end
         end
         
         function set.min_volume(Pip,minVol)
@@ -228,13 +228,13 @@ classdef Pipettes < handle
             try
                 % Add to python object
                 Pip.pypette.min_volume = int16(minVol);
-
+                
                 % Add to MATLAB object
                 Pip.min_volume = int16(minVol);
             catch ME
                 % Throw Error
                 error('Error updating pipette minimum volume. Error details: \n %s',ME.message);
-            end       
+            end
         end
         
         function set.max_volume(Pip,maxVol)
@@ -243,13 +243,13 @@ classdef Pipettes < handle
             try
                 % Add to python object
                 Pip.pypette.max_volume = int16(maxVol);
-
+                
                 % Add to MATLAB object
                 Pip.max_volume = int16(maxVol);
             catch ME
                 % Throw Error
                 error('Error updating pipette maximum volume. Error details: \n %s',ME.message);
-            end       
+            end
         end
         
         function set.aspirate_speed(Pip,aspSpeed)
@@ -258,13 +258,13 @@ classdef Pipettes < handle
             try
                 % Add to python object
                 Pip.set_speed('aspirate',aspSpeed);
-
+                
                 % Add to MATLAB object
                 Pip.aspirate_speed = aspSpeed;
             catch ME
                 % Throw Error
                 error('Error updating pipette aspiration speed. Error details: \n %s',ME.message);
-            end       
+            end
         end
         
         function set.dispense_speed(Pip,dispSpeed)
@@ -273,13 +273,13 @@ classdef Pipettes < handle
             try
                 % Add to python object
                 Pip.set_speed('dispense',dispSpeed);
-
+                
                 % Add to MATLAB object
                 Pip.dispense_speed = dispSpeed;
             catch ME
                 % Throw Error
                 error('Error updating pipette dispensing speed. Error details: \n %s',ME.message);
-            end       
+            end
         end
         
         function set_speed(Pip,speedType,speedRate)
@@ -310,10 +310,10 @@ classdef Pipettes < handle
                 % Submit 'calibrate' python method
                 Pip.pypette.calibrate(stopSite);
             catch ME
-                 error(['Error calibrating pipette plunger position.',...
-                        'Input must be a string of either ''top'', ''bottom'',',...
-                        ' ''blow_out'' or ''drop_tip'' (case sensitive).',...
-                        ' Error details: \n %s'],ME.message);
+                error(['Error calibrating pipette plunger position.',...
+                    'Input must be a string of either ''top'', ''bottom'',',...
+                    ' ''blow_out'' or ''drop_tip'' (case sensitive).',...
+                    ' Error details: \n %s'],ME.message);
             end
         end
         
@@ -322,8 +322,8 @@ classdef Pipettes < handle
             
             % Parse optional variables
             %   rel_pos variables
-            arg.rel_x = 0; % (double between -1 and 1) Relative position of well x position 
-            arg.rel_y = 0; % (double between -1 and 1) Relative position of well y position 
+            arg.rel_x = 0; % (double between -1 and 1) Relative position of well x position
+            arg.rel_y = 0; % (double between -1 and 1) Relative position of well y position
             arg.rel_z = -1; % (double between -1 and 1) Relative position of well z position (-1= bottom, 1=top of well)
             arg.rel_r = []; % (double between -1 and 1) Relative position of polar radius from well center
             arg.rel_theta = []; % (double) Relative position of polar angle from well center in radians
@@ -359,21 +359,21 @@ classdef Pipettes < handle
                     arg.specified_pos = py.tuple({});
                 end
             end
-      
+            
             % Calibrate container position using the OpenTrons python meth.
             % If specified_pos is not supplied then calibrate based on
             % pipette location
             if isempty(cell(arg.specified_pos))
                 % Calibrate using pipette location
                 Pip.pypette.calibrate_position(refCoord);
-            else 
+            else
                 % Calibrate using specified coordinates
                 Pip.pypette.calibrate_position(refCoord,arg.specified_pos);
-            end 
+            end
         end
         
         function specified_pos = updateDynContCalib(Pip,cont,well)
-            % 
+            %
             
             % Set a placeholder for specified_pos
             specified_pos = py.tuple({});
@@ -422,40 +422,51 @@ classdef Pipettes < handle
             specified_pos = {currCalibVV.x+delX,currCalibVV.y+delY,currCalibVV.z};
         end
         
-       
+        
         %% Tip Methods
         
-        function pick_up_tip(Pip,varargin)
+        function pyComdOut = pick_up_tip(Pip,varargin)
             % Pick up a new tip
             
             % Parse optional variables
             arg.loc = py.None;
-            arg.queuing = 'OTqueue';
+            arg.queuing = 'Now';
             arg.locqueue = OTexQueue;
             arg.localpos = -1; % Where to add this into the comd list
             arg.presses = 3;
             
-            arg = parseVarargin(varargin,arg);            
-             
+            arg = parseVarargin(varargin,arg);
+            
             % Confirm queuing is in the correct format
             Pip.checkQueuingInput(arg.queuing);
+            
+            % return blank python command structure unless OTqueue queueing
+            pyComdOut = cell(0,3);
             
             switch arg.queuing
                 case 'Now'
                     % Run the pick up tip now
-%                     Pip.pypette.pick_up_tip(arg.loc,false);
+                    %                     Pip.pypette.pick_up_tip(arg.loc,false);
+                    %                     Pip.pypette.pick_up_tip(pyargs('location',arg.loc,'presses',arg.presses,'enqueue',false));
+                    %                     Pip.pypette.pick_up_tip(pyargs('location',arg.loc,'presses',arg.presses));
                     % Run as daemon
-                    Pip.parent.runMethDaemon(1,Pip.pypette,'pick_up_tip',pyargs('location',arg.loc,'presses',arg.presses,'enqueue',false));
+                    %                     Pip.parent.runMethDaemon(1,Pip.pypette,'pick_up_tip',pyargs('location',arg.loc,'presses',arg.presses,'enqueue',false));
+                    Pip.parent.runMethDaemon(1,Pip.pypette,'pick_up_tip',pyargs('location',arg.loc,'presses',arg.presses));
+                    % OpenTrons v2.5.2 no longer does queueing
+                    %                 case 'OTqueue'
+                    %                     % Add to the OT queue
+                    %                     Pip.pypette.pick_up_tip(arg.loc,arg.presses);
                 case 'OTqueue'
                     % Add to the OT queue
-                    Pip.pypette.pick_up_tip(arg.loc,arg.presses);
+                    pyComdOut = {Pip.pypette,'pick_up_tip',py.dict(pyargs('location',arg.loc,'presses',arg.presses))};
+%                     Pip.pypette.pick_up_tip(arg.loc,arg.presses);
                 case 'ExtQueue'
                     % Send to external queue
                     
                     if arg.locqueue.checkLocQueue
                         % Appropriate parameters are set so send to queue
-                        arg.locqueue.queueMeth(Pip,'pick_up_tip',{'loc',arg.loc,'presses',arg.presses,'queuing','OTqueue'},'Pick up tip at??','localpos',arg.localpos);
-                        
+                        %                         arg.locqueue.queueMeth(Pip,'pick_up_tip',{'loc',arg.loc,'presses',arg.presses,'queuing','OTqueue'},'Pick up tip at??','localpos',arg.localpos);
+                        arg.locqueue.queueMeth(Pip,'pick_up_tip',{'loc',arg.loc,'presses',arg.presses},'Pick up tip at??','localpos',arg.localpos);
                     else
                         % Queue is either not defined or parameters not set
                         error('Local queue not initalized properly or supplied')
@@ -464,38 +475,45 @@ classdef Pipettes < handle
             
         end
         
-        function drop_tip(Pip,varargin)
+        function pyComdOut = drop_tip(Pip,varargin)
             % Drop current tip in trash or if undefined the current
             % location
             
             % Parse optional variables
             arg.loc = py.None;
-            arg.queuing = 'OTqueue';
+            arg.home_after = true;
+            arg.queuing = 'Now';
             arg.locqueue = OTexQueue;
             arg.localpos = -1; % Where to add this into the comd list
             
             
             arg = parseVarargin(varargin,arg);
-         
+            
             % Confirm queuing is in the correct format
             Pip.checkQueuingInput(arg.queuing);
+            
+            % return blank python command structure unless OTqueue queueing
+            pyComdOut = cell(0,3);
             
             switch arg.queuing
                 case 'Now'
                     % Run the drop tip now
-%                     Pip.pypette.drop_tip(arg.loc,false);
+                    %                     Pip.pypette.drop_tip(arg.loc,false);
                     % Run as daemon
-                    Pip.parent.runMethDaemon(1,Pip.pypette,'drop_tip',pyargs('location',arg.loc,'enqueue',false));
+                    %                     Pip.parent.runMethDaemon(1,Pip.pypette,'drop_tip',pyargs('location',arg.loc,'enqueue',false));
+                    Pip.parent.runMethDaemon(1,Pip.pypette,'drop_tip',pyargs('location',arg.loc,'home_after',arg.home_after));
+                    % OpenTrons v2.5.2 no longer does queueing
                 case 'OTqueue'
-                    % Add to the OT queue
-                    Pip.pypette.drop_tip(arg.loc);
+                    % Add to the OT group queue
+%                     Pip.pypette.drop_tip(arg.loc);
+                    pyComdOut = {Pip.pypette,'drop_tip',py.dict(pyargs('location',arg.loc,'home_after',arg.home_after))};
                 case 'ExtQueue'
                     % Send to external queue
                     
                     if arg.locqueue.checkLocQueue
                         % Appropriate parameters are set so send to queue
-                        arg.locqueue.queueMeth(Pip,'drop_tip',{'loc',arg.loc,'queuing','OTqueue'},'drop tip at??','localpos',arg.localpos);
-                        
+                        %                         arg.locqueue.queueMeth(Pip,'drop_tip',{'loc',arg.loc,'queuing','OTqueue'},'drop tip at??','localpos',arg.localpos);
+                        arg.locqueue.queueMeth(Pip,'drop_tip',{'loc',arg.loc,'home_after',arg.home_after},'drop tip at??','localpos',arg.localpos);
                     else
                         % Queue is either not defined or parameters not set
                         error('Local queue not initalized properly or supplied')
@@ -504,34 +522,40 @@ classdef Pipettes < handle
             
         end
         
-        function return_tip(Pip,varargin)
+        function pyComdOut = return_tip(Pip,varargin)
             % Return current tip to it's previous tiprack location
             
             % Parse optional variables
-            arg.queuing = 'OTqueue';
+            arg.queuing = 'Now';
             arg.locqueue = OTexQueue;
             arg.localpos = -1; % Where to add this into the comd list
+            arg.home_after = true;
             
             arg = parseVarargin(varargin,arg);
             
             % Confirm queuing is in the correct format
             Pip.checkQueuingInput(arg.queuing);
             
+            % return blank python command structure unless OTqueue queueing
+            pyComdOut = cell(0,3);
+            
             switch arg.queuing
                 case 'Now'
                     % Run the drop tip now
-%                     Pip.pypette.return_tip(false);
+                    %                     Pip.pypette.return_tip(false);
                     % Run as daemon
-                    Pip.parent.runMethDaemon(1,Pip.pypette,'return_tip',pyargs('enqueue',false));
+                    %                     Pip.parent.runMethDaemon(1,Pip.pypette,'return_tip',pyargs('enqueue',false));
+                    Pip.parent.runMethDaemon(1,Pip.pypette,'return_tip',pyargs('home_after',arg.home_after));
+                    % OpenTrons v2.5.2 no longer does queueing
                 case 'OTqueue'
                     % Add to the OT queue
-                    Pip.pypette.return_tip();
+                    pyComdOut = {Pip.pypette,'return_tip',py.dict(pyargs('home_after',arg.home_after))};
                 case 'ExtQueue'
                     % Send to external queue
-                     if arg.locqueue.checkLocQueue
+                    if arg.locqueue.checkLocQueue
                         % Appropriate parameters are set so send to queue
-                        arg.locqueue.queueMeth(Pip,'return_tip',{'queuing','OTqueue'},'return tip to ??','localpos',arg.localpos);
-                        
+                        %                         arg.locqueue.queueMeth(Pip,'return_tip',{'queuing','OTqueue'},'return tip to ??','localpos',arg.localpos);
+                        arg.locqueue.queueMeth(Pip,'return_tip',{'home_after',arg.home_after},'return tip to ??','localpos',arg.localpos);
                     else
                         % Queue is either not defined or parameters not set
                         error('Local queue not initalized properly or supplied')
@@ -541,7 +565,7 @@ classdef Pipettes < handle
         end
         
         function start_at_tip(Pip,tipRack,well)
-            % Method to specify what tip of the tip rack to start at. 
+            % Method to specify what tip of the tip rack to start at.
             
             if ischar(well)
                 Pip.pypette.start_at_tip(Pip.parent.helper.get_well(tipRack,well));
@@ -557,14 +581,14 @@ classdef Pipettes < handle
             
             boolOut = Pip.parent.check_conn();
         end
-            
         
-        function home(Pip,varargin)
+        
+        function pyComdOut = home(Pip,varargin)
             % Home this pipette's axis either right now or during a
             % protocol
             
             % Parse optional variables
-            arg.queuing = 'OTqueue';
+            arg.queuing = 'Now';
             arg.locqueue = OTexQueue;
             arg.localpos = -1; % Where to add this into the comd list
             
@@ -573,24 +597,31 @@ classdef Pipettes < handle
             % Confirm queuing is in the correct format
             Pip.checkQueuingInput(arg.queuing);
             
+            % return blank python command structure unless OTqueue queueing
+            pyComdOut = cell(0,3);
+            
             switch arg.queuing
                 case 'Now'
                     % Home now
                     % Run as daemon
                     if Pip.check_conn==1
-                        Pip.parent.runMethDaemon(1,Pip.pypette,'home',false);
+                        %                         Pip.parent.runMethDaemon(1,Pip.pypette,'home',false);
+                        Pip.parent.runMethDaemon(1,Pip.pypette,'home');
                     else
                         warningdlg('Robot not connected, connect to robot first');
                     end
+                    % OpenTrons v2.5.2 no longer does queueing
                 case 'OTqueue'
                     % Add home to the OT queue
                     Pip.pypette.home();
+                    pyComdOut = {Pip.pypette,'home',py.dict()};
                 case 'ExtQueue'
                     % Send to external queue
                     
-                     if arg.locqueue.checkLocQueue
+                    if arg.locqueue.checkLocQueue
                         % Appropriate parameters are set so send to queue
-                        arg.locqueue.queueMeth(Pip,'home',{'queuing','OTqueue'},'home axis ??','localpos',arg.localpos);
+                        %                         arg.locqueue.queueMeth(Pip,'home',{'queuing','OTqueue'},'home axis ??','localpos',arg.localpos);
+                        arg.locqueue.queueMeth(Pip,'home',{},'home axis ??','localpos',arg.localpos);
                         
                     else
                         % Queue is either not defined or parameters not set
@@ -599,12 +630,12 @@ classdef Pipettes < handle
             end
         end
         
-        function homeAll(Pip,varargin)
+        function pyComdOut = homeAll(Pip,varargin)
             % Home all axes either right now or during a
             % protocol
             
             % Parse optional variables
-            arg.queuing = 'OTqueue';
+            arg.queuing = 'Now';
             arg.locqueue = OTexQueue;
             arg.localpos = -1; % Where to add this into the comd list
             
@@ -613,24 +644,31 @@ classdef Pipettes < handle
             % Confirm queuing is in the correct format
             Pip.checkQueuingInput(arg.queuing);
             
+            % return blank python command structure unless OTqueue queueing
+            pyComdOut = cell(0,3);
+            
             switch arg.queuing
                 case 'Now'
                     % Home now
                     % Run as daemon
                     if Pip.check_conn==1
-                        Pip.parent.runMethDaemon(1,Pip.parent.robot,'home',false);
+                        %                         Pip.parent.runMethDaemon(1,Pip.parent.robot,'home',false);
+                        Pip.parent.runMethDaemon(1,Pip.parent.robot,'home');
                     else
                         warningdlg('Robot not connected, connect to robot first');
                     end
+                    % OpenTrons v2.5.2 no longer does queueing
                 case 'OTqueue'
                     % Add home to the OT queue
-                    Pip.parent.robot.home();
+%                     Pip.parent.robot.home();
+                    pyComdOut = {Pip.parent.robot,'home',py.dict()};
                 case 'ExtQueue'
                     % Send to external queue
                     
-                     if arg.locqueue.checkLocQueue
+                    if arg.locqueue.checkLocQueue
                         % Appropriate parameters are set so send to queue
-                        arg.locqueue.queueMeth(Pip,'homeAll',{'queuing','OTqueue'},'home all axes','localpos',arg.localpos);
+                        %                         arg.locqueue.queueMeth(Pip,'homeAll',{'queuing','OTqueue'},'home all axes','localpos',arg.localpos);
+                        arg.locqueue.queueMeth(Pip,'homeAll',{},'home all axes','localpos',arg.localpos);
                         
                     else
                         % Queue is either not defined or parameters not set
@@ -639,7 +677,7 @@ classdef Pipettes < handle
             end
         end
         
-        function move_to(Pip,loc, varargin)
+        function pyComdOut = move_to(Pip,loc, varargin)
             % Move robot to given location based on this pipettes
             % calibration
             %     No checking that loc is of the right format because it
@@ -647,7 +685,7 @@ classdef Pipettes < handle
             
             % Parse optional variables
             arg.strategy = 'arc';
-            arg.queuing = 'OTqueue';
+            arg.queuing = 'Now';
             arg.locqueue = OTexQueue;
             arg.localpos = -1; % Where to add this into the comd list
             
@@ -668,25 +706,34 @@ classdef Pipettes < handle
             % Confirm queuing is in the correct format
             Pip.checkQueuingInput(arg.queuing);
             
+            % return blank python command structure unless OTqueue queueing
+            pyComdOut = cell(0,3);
+            
             switch arg.queuing
                 case 'Now'
                     % move to location now
-%                     Pip.pypette.move_to(loc,arg.strategy,false);
+                    %                     Pip.pypette.move_to(loc,arg.strategy,false);
                     % Run as daemon
                     if Pip.check_conn==1
-                        Pip.parent.runMethDaemon(1,Pip.pypette,'move_to',loc,arg.strategy,false);
+                        %                         Pip.parent.runMethDaemon(1,Pip.pypette,'move_to',loc,arg.strategy,false);
+%                         Pip.parent.runMethDaemon(1,Pip.pypette,'move_to',loc,arg.strategy);
+%                         Pip.pypette.move_to(pyargs('location',loc,'strategy',arg.strategy));
+                        Pip.parent.runMethDaemon(1,Pip.pypette,'move_to',pyargs('location',loc,'strategy',arg.strategy));
                     else
                         warningdlg('Robot not connected, connect to robot first');
                     end
+                    % OpenTrons v2.5.2 no longer does queueing
                 case 'OTqueue'
                     % Add move to location to the OT queue
-                    Pip.pypette.move_to(loc,arg.strategy,1);
+%                     Pip.pypette.move_to(loc,arg.strategy,1);
+                    pyComdOut = {Pip.pypette,'move_to',py.dict(pyargs('location',loc,'strategy',arg.strategy))};
                 case 'ExtQueue'
                     % Send to external queue
-                     if arg.locqueue.checkLocQueue
+                    if arg.locqueue.checkLocQueue
                         % Appropriate parameters are set so send to queue
-                        arg.locqueue.queueMeth(Pip,'move_to',{loc,'strategy',arg.strategy,'queuing','OTqueue'},'move to ??','localpos',arg.localpos);
-
+                        %                         arg.locqueue.queueMeth(Pip,'move_to',{loc,'strategy',arg.strategy,'queuing','OTqueue'},'move to ??','localpos',arg.localpos);
+                        arg.locqueue.queueMeth(Pip,'move_to',{loc,'strategy',arg.strategy},'move to ??','localpos',arg.localpos);
+                        
                     else
                         % Queue is either not defined or parameters not set
                         error('Local queue not initalized properly or supplied')
@@ -695,38 +742,46 @@ classdef Pipettes < handle
             
         end
         
-        function delay(Pip,time,varargin)
+        function pyComdOut = delay(Pip,varargin)
             % Pause movement either during queued run or right now
             
-            % Parse optional variables 
-            arg.queuing = 'OTqueue';
+            % Parse optional variables
+            arg.queuing = 'Now';
             arg.locqueue = OTexQueue;
             arg.localpos = -1; % Where to add this into the comd list
+            arg.timesec = 0; % seconds delay
+            arg.timemin = 0; % minutes delay
             
             arg = parseVarargin(varargin,arg);
             
             % Confirm queuing is in the correct format
             Pip.checkQueuingInput(arg.queuing);
             
+            % return blank python command structure unless OTqueue queueing
+            pyComdOut = cell(0,3);
+            
             switch arg.queuing
                 case 'Now'
                     % pause now
-%                     Pip.pypette.delay(time,false);
+                    %                     Pip.pypette.delay(time,false);
                     % Run as daemon
                     if Pip.check_conn==1
-                        Pip.parent.runMethDaemon(1,Pip.pypette,'delay',time,false);
+                        %                         Pip.parent.runMethDaemon(1,Pip.pypette,'delay',time,false);
+                        Pip.parent.runMethDaemon(1,Pip.pypette,'delay',pyargs('seconds',arg.timesec,'minutes',arg.timemin));
                     else
                         warningdlg('Robot not connected, connect to robot first');
                     end
+                    % OpenTrons v2.5.2 no longer does queueing
                 case 'OTqueue'
                     % Add pause to the OT queue
-                    Pip.pypette.delay(time,true);
+%                     Pip.pypette.delay(time,true);
+                    pyComdOut = {Pip.pypette,'delay',py.dict(pyargs('seconds',arg.timesec,'minutes',arg.timemin))};
                 case 'ExtQueue'
                     % Send to external queue
                     if arg.locqueue.checkLocQueue
                         % Appropriate parameters are set so send to queue
-                        arg.locqueue.queueMeth(Pip,'delay',{time,'queuing','OTqueue'},'delay ??','localpos',arg.localpos);
-
+                        %                         arg.locqueue.queueMeth(Pip,'delay',{timeSec,'queuing','OTqueue'},'delay ??','localpos',arg.localpos);
+                        arg.locqueue.queueMeth(Pip,'delay',{'timesec',arg.timesec,'timemin',arg.timemin},'delay ??','localpos',arg.localpos);
                     else
                         % Queue is either not defined or parameters not set
                         error('Local queue not initalized properly or supplied')
@@ -736,7 +791,7 @@ classdef Pipettes < handle
         
         %% Moving liquid methods
         
-        function aspirate(Pip,vol,loc,varargin)
+        function pyComdOut = aspirate(Pip,vol,loc,varargin)
             % Aspirate a volume of liquid (in uL) using this pipette
             
             % Inputs: vol      - *int or double* Number of microliters to
@@ -755,43 +810,50 @@ classdef Pipettes < handle
             %                    'ExtQueue'. Default: 'OTqueue'.
             
             
-            % Parse optional variables 
+            % Parse optional variables
             arg.rate = 1;
-            arg.queuing = 'OTqueue';
+            arg.queuing = 'Now';
             arg.locqueue = OTexQueue;
             arg.localpos = -1; % Where to add this into the comd list
             
             arg = parseVarargin(varargin,arg);
-                        
+            
             % If an empty place holder is passed in for vol set to
-            % max_volume            
+            % max_volume
             if isempty(vol)
                 vol = py.None;
             end
-                       
+            
             % Confirm queuing is in the correct format
             Pip.checkQueuingInput(arg.queuing);
+            
+            % return blank python command structure unless OTqueue queueing
+            pyComdOut = cell(0,3);
             
             % Execute python method 'aspirate' based on queue option
             switch arg.queuing
                 case 'Now'
                     % Execute now
-%                     Pip.pypette.aspirate(vol,loc,arg.rate,false);
+                    %                     Pip.pypette.aspirate(vol,loc,arg.rate,false);
                     % Run as daemon
                     if Pip.check_conn==1
-                        Pip.parent.runMethDaemon(1,Pip.pypette,'aspirate',vol,loc,arg.rate,false);
+                        %                         Pip.parent.runMethDaemon(1,Pip.pypette,'aspirate',vol,loc,arg.rate,false);
+                        Pip.parent.runMethDaemon(1,Pip.pypette,'aspirate',pyargs('volume',vol,'location',loc,'rate',arg.rate));
                     else
                         warningdlg('Robot not connected, connect to robot first');
                     end
+                    % OpenTrons v2.5.2 no longer does queueing
                 case 'OTqueue'
                     % Add to the OT queue
-                    Pip.pypette.aspirate(vol,loc,arg.rate,true);
+%                     Pip.pypette.aspirate(vol,loc,arg.rate,true);
+                    pyComdOut = {Pip.pypette,'aspirate',py.dict(pyargs('volume',vol,'location',loc,'rate',arg.rate))};
                 case 'ExtQueue'
                     % Send to external queue
                     if arg.locqueue.checkLocQueue
                         % Appropriate parameters are set so send to queue
-                        arg.locqueue.queueMeth(Pip,'aspirate',{vol,loc,'rate',arg.rate,'queuing','OTqueue'},'aspirate ?? from ??','localpos',arg.localpos);
-
+                        %                         arg.locqueue.queueMeth(Pip,'aspirate',{vol,loc,'rate',arg.rate,'queuing','OTqueue'},'aspirate ?? from ??','localpos',arg.localpos);
+                        arg.locqueue.queueMeth(Pip,'aspirate',{vol,loc,'rate',arg.rate},'aspirate ?? from ??','localpos',arg.localpos);
+                        
                     else
                         % Queue is either not defined or parameters not set
                         error('Local queue not initalized properly or supplied')
@@ -800,7 +862,7 @@ classdef Pipettes < handle
             
         end
         
-        function dispense(Pip,vol,loc,varargin)
+        function pyComdOut = dispense(Pip,vol,loc,varargin)
             % Dispense a volume of liquid (in uL) using this pipette
             
             % Inputs: vol      - *int or double* Number of microliters to
@@ -818,16 +880,16 @@ classdef Pipettes < handle
             %                    'OTqueue', or added to an external queue,
             %                    'ExtQueue'. Default: 'OTqueue'.
             
-             % Parse optional variables 
+            % Parse optional variables
             arg.rate = 1;
-            arg.queuing = 'OTqueue';
+            arg.queuing = 'Now';
             arg.locqueue = OTexQueue;
             arg.localpos = -1; % Where to add this into the comd list
             
             arg = parseVarargin(varargin,arg);
             
             % If an empty place holder is passed in for vol set to
-            % max_volume            
+            % max_volume
             if isempty(vol)
                 vol = py.None;
             end
@@ -835,26 +897,32 @@ classdef Pipettes < handle
             % Confirm queuing is in the correct format
             Pip.checkQueuingInput(arg.queuing);
             
+            % return blank python command structure unless OTqueue queueing
+            pyComdOut = cell(0,3);
+            
             % Execute python method 'dispense' based on queue option
             switch arg.queuing
                 case 'Now'
                     % Execute now
-%                     Pip.pypette.dispense(vol,loc,arg.rate,false);
+                    %                     Pip.pypette.dispense(vol,loc,arg.rate,false);
                     % Run as daemon
                     if Pip.check_conn==1
-                        Pip.parent.runMethDaemon(1,Pip.pypette,'dispense',vol,loc,arg.rate,false);
+                        %                         Pip.parent.runMethDaemon(1,Pip.pypette,'dispense',vol,loc,arg.rate,false);
+                        Pip.parent.runMethDaemon(1,Pip.pypette,'dispense',pyargs('volume',vol,'location',loc,'rate',arg.rate));
                     else
                         warningdlg('Robot not connected, connect to robot first');
                     end
+                    % OpenTrons v2.5.2 no longer does queueing
                 case 'OTqueue'
                     % Add to the OT queue
-                    Pip.pypette.dispense(vol,loc,arg.rate,true);
+%                     Pip.pypette.dispense(vol,loc,arg.rate,true);
+                    pyComdOut = {Pip.pypette,'dispense',py.dict(pyargs('volume',vol,'location',loc,'rate',arg.rate))};
                 case 'ExtQueue'
                     % Send to external queue
                     if arg.locqueue.checkLocQueue
                         % Appropriate parameters are set so send to queue
-                        arg.locqueue.queueMeth(Pip,'dispense',{vol,loc,'rate',arg.rate,'queuing','OTqueue'},'dispense ?? to ??','localpos',arg.localpos);
-
+                        arg.locqueue.queueMeth(Pip,'dispense',{vol,loc,'rate',arg.rate},'dispense ?? to ??','localpos',arg.localpos);
+                        
                     else
                         % Queue is either not defined or parameters not set
                         error('Local queue not initalized properly or supplied')
@@ -863,7 +931,7 @@ classdef Pipettes < handle
             
         end
         
-        function mix(Pip,reps,vol,varargin)
+        function pyComdOut = mix(Pip,reps,vol,varargin)
             % Mix a volume of liquid (in uL) using this pipette
             
             % Inputs: reps     - *int* Number of times the pipette should
@@ -886,14 +954,14 @@ classdef Pipettes < handle
             % Parse optional variables
             arg.loc = py.None;
             arg.rate = 1;
-            arg.queuing = 'OTqueue';
+            arg.queuing = 'Now';
             arg.locqueue = OTexQueue;
             arg.localpos = -1; % Where to add this into the comd list
             arg.strategy = 'arc';
             
             arg = parseVarargin(varargin,arg);
             
-    
+            
             % If an empty place holder is passed in for reps set to 1
             if isempty(reps)
                 reps = 1;
@@ -909,75 +977,98 @@ classdef Pipettes < handle
                     else
                         % fractional number passed in. Warn then truncate
                         warning('Reps passed in was fractional when integer',...
-                                ' is required. The number will be rounded ',...
-                                ' to the nearest integer');
+                            ' is required. The number will be rounded ',...
+                            ' to the nearest integer');
                         reps = int16(reps);
                     end
-                        
+                    
                 end
             else
                 error('reps must be a number')
             end
             
             % If an empty place holder is passed in for vol set to
-            % max_volume            
+            % max_volume
             if isempty(vol)
                 vol = py.None;
             end
             
             % Check if the location is None, a well or a specific location
-            locClass = class(arg.loc);
-            switch locClass
-                case 'py.opentrons.containers.placeable.Well'
-                    % Fed in a well, so can just use that directly
-                    wellBottom = arg.loc.bottom();
-                case 'py.tuple'
-                    % This is feeding in a specific location so just use
-                    % what is fed in
-                    wellBottom = arg.loc;
+            % Check if location is empty
+            if isempty(arg.loc)
+                arg.loc = py.None;
             end
-                    
-                       
+%             locClass = class(arg.loc);
+            %             if isa(arg.loc,'string') || isa(arg.loc,'char')
+            %                 if strcmp(arg.loc,'here')
+            
+            %             switch locClass
+            %                 case 'py.opentrons.containers.placeable.Well'
+            %                     % Fed in a well, so can just use that directly
+            %                     wellBottom = arg.loc.bottom();
+            %                 case 'py.tuple'
+            %                     % This is feeding in a specific location so just use
+            %                     % what is fed in
+            %                     wellBottom = arg.loc;
+            %             end
+            
+            
             % Confirm queuing is in the correct format
             Pip.checkQueuingInput(arg.queuing);
-
+            
+            % return blank python command structure unless OTqueue queueing
+            pyComdOut = cell(0,3);
+            
             
             % Execute python method 'mix' based on queue option
             switch arg.queuing
                 case 'Now'
                     % Execute now
-%                     Pip.pypette.mix(reps,vol,arg.loc,arg.rate,false);
+                    %                     Pip.pypette.mix(reps,vol,arg.loc,arg.rate,false);
                     % Run as daemon
                     if Pip.check_conn==1
-%                         Pip.parent.runMethDaemon(1,Pip.pypette,'mix',reps,vol,arg.loc,arg.rate,false);
-                        if arg.loc~=py.None
-                            Pip.move_to(wellBottom,'strategy',arg.strategy,'queuing','Now');
-                        end
-
-                        for k = 1:reps
-                            Pip.aspirate(vol,[],'rate',arg.rate,'queuing','Now')
-                            Pip.dispense(vol,[],'rate',arg.rate,'queuing','Now')
+                        %                         Pip.parent.runMethDaemon(1,Pip.pypette,'mix',reps,vol,arg.loc,arg.rate,false);
+                        if isa(arg.loc,'string') || isa(arg.loc,'char')
+                            if strcmp(arg.loc,'here')
+                                %                         if arg.loc~=py.None
+                                %                             Pip.move_to(wellBottom,'strategy',arg.strategy,'queuing','Now');
+                                %                         end
+                                %
+                                
+                                for k = 1:reps
+                                    Pip.aspirate(vol,[],'rate',arg.rate)
+                                    Pip.dispense(vol,[],'rate',arg.rate)
+                                end
+                            else
+                                error('Mix location should either be string ''here'', py.None, Well location or location tuple');
+                            end
+                        else
+                            
+                            Pip.parent.runMethDaemon(1,Pip.pypette,'mix',pyargs('repetitions',reps,'volume',vol,'location',arg.loc,'rate',arg.rate));
                         end
                     else
                         warningdlg('Robot not connected, connect to robot first');
                     end
+                    % OpenTrons v2.5.2 no longer does queueing
                 case 'OTqueue'
                     % Add to the OT queue
-%                     Pip.pypette.mix(reps,vol,arg.loc,arg.rate,true);
-                    if arg.loc~=py.None
-                        Pip.move_to(wellBottom,'strategy',arg.strategy,'queuing','OTqueue');
-                    end
-
-                    for k = 1:reps
-                        Pip.aspirate(vol,[],'rate',arg.rate,'queuing','OTqueue')
-                        Pip.dispense(vol,[],'rate',arg.rate,'queuing','OTqueue')
-                    end
+                    %                     Pip.pypette.mix(reps,vol,arg.loc,arg.rate,true);
+                    pyComdOut = {Pip.pypette,'mix',py.dict(pyargs('repetitions',reps,'volume',vol,'location',arg.loc,'rate',arg.rate))};
+%                     if arg.loc~=py.None
+%                         Pip.move_to(wellBottom,'strategy',arg.strategy,'queuing','OTqueue');
+%                         pyComdOut = {
+%                     end
+%                     
+%                     for k = 1:reps
+%                         Pip.aspirate(vol,[],'rate',arg.rate,'queuing','OTqueue')
+%                         Pip.dispense(vol,[],'rate',arg.rate,'queuing','OTqueue')
+%                     end
                 case 'ExtQueue'
                     % Send to external queue
                     if arg.locqueue.checkLocQueue
                         % Appropriate parameters are set so send to queue
+                        %                         arg.locqueue.queueMeth(Pip,'mix',{reps,vol,'loc',arg.loc,'rate',arg.rate,'queuing','OTqueue','strategy',arg.strategy},'mix ?? uL in ??','localpos',arg.localpos);
                         arg.locqueue.queueMeth(Pip,'mix',{reps,vol,'loc',arg.loc,'rate',arg.rate,'queuing','OTqueue','strategy',arg.strategy},'mix ?? uL in ??','localpos',arg.localpos);
-
                     else
                         % Queue is either not defined or parameters not set
                         error('Local queue not initalized properly or supplied')
@@ -986,8 +1077,8 @@ classdef Pipettes < handle
             
         end
         
-        function blow_out(Pip,varargin)
-            % Force any remaining liquid to dispense, by moving this 
+        function pyComdOut = blow_out(Pip,varargin)
+            % Force any remaining liquid to dispense, by moving this
             % pipette’s plunger to the calibrated 'blow_out' position.
             
             % Inputs: loc      - *Placable or tuple* The location to
@@ -1001,12 +1092,12 @@ classdef Pipettes < handle
             
             % Parse optional variables
             arg.loc = py.None;
-            arg.queuing = 'OTqueue';
+            arg.queuing = 'Now';
             arg.locqueue = OTexQueue;
             arg.localpos = -1; % Where to add this into the comd list
             
             arg = parseVarargin(varargin,arg);
-
+            
             % Pass None to python if empty
             if isempty(arg.loc)
                 arg.loc = py.None;
@@ -1014,27 +1105,33 @@ classdef Pipettes < handle
             
             % Confirm queuing is in the correct format
             Pip.checkQueuingInput(arg.queuing);
-                       
+            
+            % return blank python command structure unless OTqueue queueing
+            pyComdOut = cell(0,3);
+            
             % Execute python method 'blow_out' based on queue option
             switch arg.queuing
                 case 'Now'
                     % Execute now
-%                     Pip.pypette.blow_out(arg.loc,false);
+                    %                     Pip.pypette.blow_out(arg.loc,false);
                     % Run as daemon
                     if Pip.check_conn==1
-                        Pip.parent.runMethDaemon(1,Pip.pypette,'blow_out',arg.loc,false);
+                        %                         Pip.parent.runMethDaemon(1,Pip.pypette,'blow_out',arg.loc,false);
+                        Pip.parent.runMethDaemon(1,Pip.pypette,'blow_out',pyargs('location',arg.loc));
                     else
                         warningdlg('Robot not connected, connect to robot first');
                     end
+                    % OpenTrons v2.5.2 no longer does queueing
                 case 'OTqueue'
                     % Add to the OT queue
-                    Pip.pypette.blow_out(arg.loc,true); 
+%                     Pip.pypette.blow_out(arg.loc,true);
+                    pyComdOut = {Pip.pypette,'blow_out',py.dict(pyargs('location',arg.loc))};
                 case 'ExtQueue'
                     % Send to external queue
                     if arg.locqueue.checkLocQueue
                         % Appropriate parameters are set so send to queue
-                        arg.locqueue.queueMeth(Pip,'blow_out',{'loc',arg.loc,'queuing','OTqueue'},'blowout at ??','localpos',arg.localpos);
-
+                        %                         arg.locqueue.queueMeth(Pip,'blow_out',{'loc',arg.loc,'queuing','OTqueue'},'blowout at ??','localpos',arg.localpos);
+                        arg.locqueue.queueMeth(Pip,'blow_out',{'loc',arg.loc},'blowout at ??','localpos',arg.localpos);
                     else
                         % Queue is either not defined or parameters not set
                         error('Local queue not initalized properly or supplied')
@@ -1043,27 +1140,30 @@ classdef Pipettes < handle
             
         end
         
-        function touch_tip(Pip,varargin)
+        function pyComdOut = touch_tip(Pip,varargin)
             % Touch the pipette tip to the side of the well, with the
             % intent of removing left-over droplets.
             
             % Inputs: loc      - *Placable or tuple* The location of well
             %                    to touch the tip on. If none is passed in
             %                    the pipette will touch_tip at the most
-            %                    recent associated placable.
+            %                    recent associated placable. Default: None
+            %         radius   - *double* fraction of the radius that the
+            %                    pipette will move to. Default: 1
             %         queuing  - *str* Specifier if this command should be
             %                    run now, 'Now', added to the OT queue,
             %                    'OTqueue', or added to an external queue,
             %                    'ExtQueue'. Default: 'OTqueue'.
             
-            % Parse optional variables 
+            % Parse optional variables
             arg.loc = py.None;
-            arg.queuing = 'OTqueue';
+            arg.radius = 1;
+            arg.queuing = 'Now';
             arg.locqueue = OTexQueue;
             arg.localpos = -1; % Where to add this into the comd list
             
             arg = parseVarargin(varargin,arg);
-            % Assign default variables if not passed in 
+            % Assign default variables if not passed in
             
             % Pass None to python if empty
             if isempty(arg.loc)
@@ -1072,27 +1172,33 @@ classdef Pipettes < handle
             
             % Confirm queuing is in the correct format
             Pip.checkQueuingInput(arg.queuing);
-                       
+            
+            % return blank python command structure unless OTqueue queueing
+            pyComdOut = cell(0,3);
+            
             % Execute python method 'touch_tip' based on queue option
             switch arg.queuing
                 case 'Now'
                     % Execute now
-%                     Pip.pypette.touch_tip(arg.loc,false);
+                    %                     Pip.pypette.touch_tip(arg.loc,false);
                     % Run as daemon
                     if Pip.check_conn==1
-                        Pip.parent.runMethDaemon(1,Pip.pypette,'touch_tip',arg.loc,false);
+                        %                         Pip.parent.runMethDaemon(1,Pip.pypette,'touch_tip',arg.loc,false);
+                        Pip.parent.runMethDaemon(1,Pip.pypette,'touch_tip',pyargs('location',arg.loc,'radius',arg.radius));
                     else
                         warningdlg('Robot not connected, connect to robot first');
                     end
+                    % OpenTrons v2.5.2 no longer does queueing
                 case 'OTqueue'
                     % Add to the OT queue
-                    Pip.pypette.touch_tip(arg.loc,true); 
+%                     Pip.pypette.touch_tip(arg.loc,true);
+                    pyComdOut = {Pip.pypette,'touch_tip',py.dict(pyargs('location',arg.loc,'radius',arg.radius))};
                 case 'ExtQueue'
                     % Send to external queue
                     if arg.locqueue.checkLocQueue
                         % Appropriate parameters are set so send to queue
-                        arg.locqueue.queueMeth(Pip,'touch_tip',{'loc',arg.loc,'queuing','OTqueue'},'touch tip at ??','localpos',arg.localpos);
-
+                        %                         arg.locqueue.queueMeth(Pip,'touch_tip',{'loc',arg.loc,'queuing','OTqueue'},'touch tip at ??','localpos',arg.localpos);
+                        arg.locqueue.queueMeth(Pip,'touch_tip',{'loc',arg.loc,'radius',arg.radius},'touch tip at ??','localpos',arg.localpos);
                     else
                         % Queue is either not defined or parameters not set
                         error('Local queue not initalized properly or supplied')
@@ -1105,7 +1211,7 @@ classdef Pipettes < handle
         
         function transfer_prep(Pip,vol,from_loc,to_loc,varargin)
             
-            % Parse optional variables 
+            % Parse optional variables
             arg.rate = 1;
             arg.queuing = 'OTqueue';
             arg.locqueue = OTexQueue;
@@ -1114,9 +1220,9 @@ classdef Pipettes < handle
             arg.tiploc = py.None; %to specify which tip to pick up if not using tip tracking
             
             arg = parseVarargin(varargin,arg);
-                        
+            
             % If an empty place holder is passed in for vol set to
-            % max_volume            
+            % max_volume
             if isempty(vol)
                 vol = py.None;
             end
@@ -1138,11 +1244,11 @@ classdef Pipettes < handle
                         error('Could not get well out of to_loc input')
                     end
             end
-                       
+            
             % Confirm queuing is in the correct format
             Pip.checkQueuingInput(arg.queuing);
             
-            if arg.newtip == 1            
+            if arg.newtip == 1
                 Pip.pick_up_tip('loc',arg.tiploc,'queuing',arg.queuing,'locqueue',arg.locqueue,'localpos',arg.localpos)
             end
             
@@ -1199,14 +1305,14 @@ classdef Pipettes < handle
             end
             
             Pip.dispense(arg.vol,loc,'rate',arg.rate,'queuing',arg.queuing,'locqueue',arg.locqueue,'localpos',arg.localpos)
-            if arg.mixreps > 0 
+            if arg.mixreps > 0
                 Pip.mix(arg.mixreps,arg.mixvol,loc,'strategy',arg.strategy,'rate',arg.rate,'queuing',arg.queuing,'locqueue',arg.locqueue,'localpos',arg.localpos);
             end
             if arg.blowout == 1
                 Pip.blow_out('queuing',arg.queuing,'locqueue',arg.locqueue,'localpos',arg.localpos);
             end
             if arg.touchtip == 1
-                Pip.touc_tip('queuing',arg.queuing,'locqueue',arg.locqueue,'localpos',arg.localpos);
+                Pip.touch_tip('queuing',arg.queuing,'locqueue',arg.locqueue,'localpos',arg.localpos);
             end
             
             Pip.move_to(locWell.top(),'queuing',arg.queuing,'locqueue',arg.locqueue,'localpos',arg.localpos)

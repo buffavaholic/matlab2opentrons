@@ -172,26 +172,6 @@ uicontrol( 'Parent', handles.plungeIncrGrp, 'Style', 'togglebutton', 'String', '
 uicontrol( 'Parent', handles.plungeIncrGrp, 'Style', 'togglebutton', 'String', '0.1', ... 
     'Units', 'normalized', 'Position', [secondStart spaceGap normSize normSize] ); 
 
-% plungerPosPanel = uix.Panel('Parent',pipGroup,'Title','Calibrate Plunger Pos.','Padding',2,'fontsize',normFont);
-% plungerPosGroup = uix.VBox( 'Parent',plungerPosPanel,'Spacing', 5,'Padding',5);
-% 
-% topPlPanel =uix.Panel('Parent',plungerPosGroup,'Title','Top','Padding',2,'fontsize',normFont);
-% topPlBox = uix.HBox( 'Parent', topPlPanel);
-% handles.pipetteTopSaveBtn =uicontrol( 'Parent', topPlBox, 'String', 'Save', 'Callback', @pipetteTopSaveBtn_Callback,'fontsize',normFont );
-% handles.pipetteTopGotoBtn =uicontrol( 'Parent', topPlBox, 'String', 'Go To', 'Callback', @pipetteTopGotoBtn_Callback,'fontsize',normFont );
-% botPlPanel =uix.Panel('Parent',plungerPosGroup,'Title','Bottom','Padding',2,'fontsize',normFont);
-% botPlBox = uix.HBox( 'Parent', botPlPanel);
-% handles.pipetteFSsaveBtn =uicontrol( 'Parent', botPlBox, 'String', 'Save', 'Callback', @pipetteFSsaveBtn_Callback,'fontsize',normFont );
-% handles.pipetteFSgotoBtn =uicontrol( 'Parent', botPlBox, 'String', 'Go To', 'Callback', @pipetteFSgotoBtn_Callback,'fontsize',normFont );
-% blowPlPanel =uix.Panel('Parent',plungerPosGroup,'Title','Blowout','Padding',2,'fontsize',normFont);
-% blowPlBox = uix.HBox( 'Parent', blowPlPanel);
-% handles.pipetteBlowSaveBtn =uicontrol( 'Parent', blowPlBox, 'String', 'Save', 'Callback', @pipetteBlowSaveBtn_Callback,'fontsize',normFont );
-% handles.pipetteBlowGotoBtn =uicontrol( 'Parent', blowPlBox, 'String', 'Go To', 'Callback', @pipetteBlowGotoBtn_Callback,'fontsize',normFont );
-% droptipPlPanel =uix.Panel('Parent',plungerPosGroup,'Title','Drop Tip','Padding',2,'fontsize',normFont);
-% droptipPlBox = uix.HBox( 'Parent', droptipPlPanel);
-% handles.pipetteDroptipSaveBtn =uicontrol( 'Parent', droptipPlBox, 'String', 'Save', 'Callback', @pipetteDroptipSaveBtn_Callback,'fontsize',normFont );
-% handles.pipetteDroptipGotoBtn =uicontrol( 'Parent', droptipPlBox, 'String', 'Go To', 'Callback', @pipetteDroptipGotoBtn_Callback,'fontsize',normFont );
-
 plungerPosPanel = uix.Panel('Parent',pipGroup,'Title','Calibrate Plunger Pos.','Padding',2,'fontsize',normFont);
 plungerPosGroup = uix.Grid( 'Parent',plungerPosPanel,'Spacing', 5,'Padding',5);
 uicontrol( 'Parent', plungerPosGroup, ...
@@ -345,7 +325,7 @@ function connButton_Callback(hObject, eventdata)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
  contents = cellstr(get(handles.comPortsList,'String'));
-
+numTriesToConnect = 10;
 if handles.robot.is_connected()==1
    handles.is_connected = 1;
    handles.port = char(handles.robot.get_connected_port);
@@ -356,13 +336,21 @@ if handles.robot.is_connected()==1
 else
     handles.is_connected = 0;
     comStr = contents{get(handles.comPortsList,'Value')};
-    
+    comNum = get(handles.comPortsList,'Value');
     try
-    connConf = handles.robot.connect(comStr);
-    
-        if connConf == 1
-            set(handles.comPortsList,'BackgroundColor','green');
-            set(handles.connButton,'String','Disconnect');
+        connConf = handles.robot.connect(comStr);
+        for k = 1:numTriesToConnect
+            if OT.robot.is_connected == 1
+                set(handles.comPortsList,'BackgroundColor','green');
+                set(handles.connButton,'String','Disconnect');
+                break
+            else
+                pause(2)
+            end
+        end
+        
+        if OT.robot.is_connected == 0
+            warning('Did not connect after 20 seconds')
         end
     
     catch
@@ -391,6 +379,7 @@ if handles.robot.is_connected()==1
    handles.InitComPorts = tempCell;
    set(handles.comPortsList,'BackgroundColor','green');
    set(handles.connButton,'String','Disconnect');
+   set(handles.comPortsList,'Value',1);
 else
     handles.is_connected = 0;
 end

@@ -31,6 +31,24 @@ def runDaemonRun(robo):
 
     return d
 
+def runDaemonGroup(GrpList,*argsIn):
+
+    def OTdaemon(listIn,*args):
+        #print('InsideDaemon')
+        for obj, meth, kwargsIn in listIn:
+            print('InsideDaemon')
+            getattr(obj, meth)(*args,**kwargsIn)
+            print('MethCompl')
+        #robotIn.run()
+        #print('AfterHome')
+
+    d = threading.Thread(name='otDaemon', target=OTdaemon, args=(GrpList,*argsIn,))
+    #d.setDaemon(True)
+
+    d.start()
+
+    return d
+
 def doHalt(robo):
 
     robo._driver.halt()
